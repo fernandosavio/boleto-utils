@@ -10,27 +10,20 @@
 */
 
 mod utils;
+mod cobranca;
 
 use std::convert::TryFrom;
-use std::ops::Range;
 use chrono::NaiveDate;
-use lazy_static::lazy_static;
-use regex::Regex;
-
-use crate::utils::fator_vencimento;
 use crate::utils::barcode_utils;
+use crate::cobranca::BarcodeCobranca;
+
 
 #[derive(Debug)]
 pub enum Error {
     NumbersOnly,
     InvalidLength(usize),
     InvalidCodigoMoeda,
-}
-
-#[derive(Debug)]
-enum CodigoMoeda {
-    Real = 9,
-    Outras = 0,
+    InvalidDigitableLine(String),
 }
 
 // struct CampoLivreBradesco {
@@ -43,11 +36,6 @@ enum CodigoMoeda {
 pub struct Arrecadacao {
     segmento: Segmento,
     convenio: String,
-}
-
-#[derive(Debug)]
-pub struct Cobranca {
-    id_banco: u16,
 }
 
 #[derive(Debug)]
@@ -65,9 +53,8 @@ pub enum Segmento {
 #[derive(Debug)]
 pub enum TipoBoleto {
     Arrecadacao(Arrecadacao),
-    Cobranca(Cobranca),
+    Cobranca(BarcodeCobranca),
 }
-
 
 #[derive(Debug)]
 pub struct Boleto {
@@ -78,13 +65,19 @@ pub struct Boleto {
     data_vencimento: Option<NaiveDate>,
 }
 
+impl TryFrom<&str> for Boleto {
+    type Error = Error;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
 impl Boleto {
     pub fn new(value: &str) -> Result<Self, Error> {
-        lazy_static! {
-            static ref ONLY_NUMBERS_REGEX: Regex = Regex::new(r"^\d+$").unwrap();
-        }
 
-        if !ONLY_NUMBERS_REGEX.is_match(&value) {
+        let only_numbers = value.chars().all(|c| c.is_ascii_digit());
+        if !only_numbers {
             return Err(Error::NumbersOnly);
         }
 
@@ -100,71 +93,38 @@ impl Boleto {
             length => return Err(Error::InvalidLength(length)),
         };
 
-        // match barcode.chars().next() {
-        //     Some('8') => Self::parse_arrecadacao_barcode(barcode),
-        //     _ => Self::parse_cobranca_barcode(barcode),
-        // }
-        
-        Ok(
-            Boleto {
-                codigo_barras: barcode,
-                linha_digitavel: digitable_line,
-                data_vencimento: todo!(),
-                tipo: todo!(),
-                valor: todo!(),
-            }
-        )
+        match barcode.chars().next() {
+            None => unreachable!(),
+            Some('8') => todo!(),
+            _ => {
+                let cob = BarcodeCobranca::new(&barcode).unwrap();
+
+                Ok(
+                    Boleto {
+                        codigo_barras: barcode,
+                        linha_digitavel: digitable_line,
+                        data_vencimento: cob.data_vencimento,
+                        valor: cob.valor,
+                        tipo: TipoBoleto::Cobranca(cob),
+                    }
+                )
+            },
+        }
     }
 
-    fn parse_cobranca_barcode(value: String) -> Result<Self, Error> {
-        const ID_BANCO: Range<usize> = 0..3;
-        const COD_MOEDA: Range<usize> = 3..4;
-        // const DIG_VERIF: Range<usize> = 4..5;
-        const FATOR_VENC: Range<usize> = 5..9;
-        const VALOR: Range<usize> = 9..19;
-        // const CAMPO_LIVRE: Range<usize> = 19..44;
-
-        match value[COD_MOEDA].parse().unwrap() {
-            0 | 9 => {},
-            _ => return Err(Error::InvalidCodigoMoeda),
-        };
-
-        let id_banco: u16 = value[ID_BANCO].parse().unwrap();
-        // let digito_verificador: u8 = value[DIG_VERIF].parse().unwrap();
-        let fator_vencimento: u32 = value[FATOR_VENC].parse().unwrap();
-        let valor: f64 = value[VALOR].parse().unwrap();
-        let valor = valor / 100.0;
-
-        let cobranca = Cobranca { id_banco };
-
-        Ok(Boleto {
-            tipo: TipoBoleto::Cobranca(cobranca),
-            data_vencimento: Some(fator_vencimento::to_date(fator_vencimento)),
-            valor: valor,
-            codigo_barras: value.clone(),
-            linha_digitavel: value,
-        })
-    }
-
-    fn parse_arrecadacao_barcode(value: String) -> Result<Self, Error> {
-        todo!()
-    }
 
 }
 
-impl TryFrom<&str> for Boleto {
-    type Error = Error;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Self::new(value)
-    }
+#[derive(Debug)]
+pub struct DadosCobranca {
+    id_banco: u16,
 }
 
 #[cfg(test)]
 mod tests {
     use chrono::NaiveDate;
 
-    use crate::{Boleto, Cobranca, TipoBoleto};
+    use crate::{Boleto, TipoBoleto};
 
     #[test]
     fn valid_barcode() {
@@ -173,13 +133,10 @@ mod tests {
         let boleto = Boleto::new(barcode).unwrap();
 
         assert!(
-            matches!(
-                boleto.tipo, 
-                TipoBoleto::Cobranca(Cobranca { id_banco: 104 })
-            )
+            matches!(boleto.tipo, TipoBoleto::Cobranca(_))
         );
         assert_eq!(
-            boleto.data_vencimento, 
+            boleto.data_vencimento,
             Some(NaiveDate::from_ymd(2022, 5, 10))
         );
         assert_eq!(boleto.valor, 214.03);
