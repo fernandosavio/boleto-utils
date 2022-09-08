@@ -12,6 +12,7 @@ pub fn fator_vencimento_to_date(fator: u16) -> Option<NaiveDate> {
     }
 }
 
+#[allow(dead_code)]
 pub fn date_to_fator_vencimento(date: NaiveDate) -> Option<u16> {
     (date - get_base_date()).num_days().try_into().ok()
 }

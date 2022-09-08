@@ -32,30 +32,31 @@ pub enum Error {
 //     nosso_numero: u32,
 // }
 
-#[derive(Debug)]
-pub struct Arrecadacao {
-    segmento: Segmento,
-    convenio: String,
-}
+// #[derive(Debug)]
+// pub struct Arrecadacao {
+//     segmento: Segmento,
+//     convenio: String,
+// }
 
-#[derive(Debug)]
-pub enum Segmento {
-    Prefeituras = 1,
-    Saneamento = 2,
-    EnergiaEletricaEGas = 3,
-    Telecomunicacoes = 4,
-    OrgaosGovernamentais = 5,
-    Carnes = 6,
-    MultasTransito = 7,
-    ExclusivoDoBanco = 9,
-}
+// #[derive(Debug)]
+// pub enum Segmento {
+//     Prefeituras = 1,
+//     Saneamento = 2,
+//     EnergiaEletricaEGas = 3,
+//     Telecomunicacoes = 4,
+//     OrgaosGovernamentais = 5,
+//     Carnes = 6,
+//     MultasTransito = 7,
+//     ExclusivoDoBanco = 9,
+// }
 
 #[derive(Debug)]
 pub enum TipoBoleto {
-    Arrecadacao(Arrecadacao),
+    // Arrecadacao(Arrecadacao),
     Cobranca(BarcodeCobranca),
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Boleto {
     tipo: TipoBoleto,
@@ -113,11 +114,6 @@ impl Boleto {
     }
 
 
-}
-
-#[derive(Debug)]
-pub struct DadosCobranca {
-    id_banco: u16,
 }
 
 #[cfg(test)]
