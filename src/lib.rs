@@ -15,7 +15,7 @@ mod cobranca;
 use std::convert::TryFrom;
 use chrono::NaiveDate;
 use crate::utils::barcode_utils;
-use crate::cobranca::BarcodeCobranca;
+use crate::cobranca::Cobranca;
 
 
 #[derive(Debug)]
@@ -33,28 +33,11 @@ pub enum BoletoError {
 //     nosso_numero: u32,
 // }
 
-// #[derive(Debug)]
-// pub struct Arrecadacao {
-//     segmento: Segmento,
-//     convenio: String,
-// }
-
-// #[derive(Debug)]
-// pub enum Segmento {
-//     Prefeituras = 1,
-//     Saneamento = 2,
-//     EnergiaEletricaEGas = 3,
-//     Telecomunicacoes = 4,
-//     OrgaosGovernamentais = 5,
-//     Carnes = 6,
-//     MultasTransito = 7,
-//     ExclusivoDoBanco = 9,
-// }
 
 #[derive(Debug)]
 pub enum TipoBoleto {
     // Arrecadacao(Arrecadacao),
-    Cobranca(BarcodeCobranca),
+    Cobranca(Cobranca),
 }
 
 #[allow(dead_code)]
@@ -99,7 +82,7 @@ impl Boleto {
             None => unreachable!(),
             Some('8') => todo!(),
             _ => {
-                let cob = BarcodeCobranca::new(&barcode).unwrap();
+                let cob = Cobranca::new(&barcode).unwrap();
 
                 Ok(
                     Boleto {

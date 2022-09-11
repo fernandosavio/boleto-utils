@@ -1,7 +1,7 @@
-use std::{ops::Range};
+use std::ops::Range;
 
+use crate::utils::{dv_utils, fator_vencimento_to_date};
 use crate::BoletoError;
-use crate::utils::fator_vencimento_to_date;
 use chrono::NaiveDate;
 
 #[derive(Debug)]
@@ -11,7 +11,7 @@ pub enum CodigoMoeda {
 }
 
 #[derive(Debug)]
-pub struct BarcodeCobranca {
+pub struct Cobranca {
     pub cod_banco: u16,
     pub cod_moeda: CodigoMoeda,
     pub digito_verificador: u8,
@@ -20,7 +20,7 @@ pub struct BarcodeCobranca {
     pub valor: Option<f64>,
 }
 
-impl BarcodeCobranca {
+impl Cobranca {
     pub fn new(barcode: &str) -> Result<Self, BoletoError> {
         let _ = Self::validate(barcode)?;
 
@@ -31,9 +31,14 @@ impl BarcodeCobranca {
         const VALOR: Range<usize> = 9..19;
         // const CAMPO_LIVRE: Range<usize> = 19..44;
 
-        let cod_banco = barcode[ID_BANCO].parse().expect("cod_banco deve ser numérico");
+        let cod_banco = barcode[ID_BANCO]
+            .parse()
+            .expect("cod_banco deve ser numérico");
 
-        let cod_moeda = match barcode[COD_MOEDA].parse().expect("cod_banco deve ser numérico") {
+        let cod_moeda = match barcode[COD_MOEDA]
+            .parse()
+            .expect("cod_banco deve ser numérico")
+        {
             9 => CodigoMoeda::Real,
             0 => CodigoMoeda::Outras,
             _ => return Err(BoletoError::InvalidCodigoMoeda),
@@ -48,7 +53,7 @@ impl BarcodeCobranca {
 
         let digito_verificador: u8 = barcode[DIG_VERIF].parse().unwrap();
 
-        if digito_verificador != Self::calculate_verifier_digit(barcode)? {
+        if digito_verificador != Self::calculate_digito_verificador(barcode)? {
             return Err(BoletoError::InvalidDigitoVerificador);
         }
 
@@ -76,7 +81,7 @@ impl BarcodeCobranca {
     }
 
     pub fn linha_digitavel_to_cod_barras(digitable_line: &str) -> Result<String, BoletoError> {
-        let _ = Self::validate(digitable_line);
+        let _ = Self::validate(digitable_line)?;
 
         if digitable_line.len() != 47 {
             return Err(BoletoError::InvalidLength);
@@ -102,7 +107,7 @@ impl BarcodeCobranca {
     }
 
     pub fn cod_barras_to_linha_digitavel(barcode: &str) -> Result<String, BoletoError> {
-        let _ = Self::validate(barcode);
+        let _ = Self::validate(barcode)?;
 
         if barcode.len() != 44 {
             return Err(BoletoError::InvalidLength);
@@ -121,18 +126,18 @@ impl BarcodeCobranca {
         digitable_line.push_str(&barcode[0..4]);
         digitable_line.push_str(&barcode[19..24]);
 
-        let mut dv_campo = Self::calculate_dv_campo(&digitable_line[0..9]).to_string();
-        digitable_line.push_str(&dv_campo);
+        let mut dv_campo = dv_utils::mod_10_alternating_2_1(digitable_line[0..9].bytes());
+        digitable_line.push_str(&dv_campo.to_string());
 
         // Campo 2
         digitable_line.push_str(&barcode[24..34]);
-        dv_campo = Self::calculate_dv_campo(&digitable_line[10..20]).to_string();
-        digitable_line.push_str(&dv_campo);
+        dv_campo = dv_utils::mod_10_alternating_2_1(digitable_line[10..20].bytes());
+        digitable_line.push_str(&dv_campo.to_string());
 
         // Campo 3
         digitable_line.push_str(&barcode[34..44]);
-        dv_campo = Self::calculate_dv_campo(&digitable_line[21..31]).to_string();
-        digitable_line.push_str(&dv_campo);
+        dv_campo = dv_utils::mod_10_alternating_2_1(digitable_line[21..31].bytes());
+        digitable_line.push_str(&dv_campo.to_string());
 
         // DV
         digitable_line.push_str(&barcode[4..5]);
@@ -143,40 +148,20 @@ impl BarcodeCobranca {
         Ok(digitable_line)
     }
 
-    fn calculate_dv_campo(campo: &str) -> u8 {
-        let soma: u8 = campo.bytes().rev()
-            .map(|n| n - 48)
-            .zip([2, 1].iter().cycle())
-            .map(|(n, i)| {
-                match n * i {
-                    x if x > 9 => (x / 10) + (x % 10),
-                    x => x,
-                }
-            })
-            .sum();
-
-        10 - (soma % 10)
-    }
-
-    fn calculate_verifier_digit(barcode: &str) -> Result<u8, BoletoError> {
+    fn calculate_digito_verificador(barcode: &str) -> Result<u8, BoletoError> {
         let _ = Self::validate(barcode)?;
 
         // Cria um iterator que itera sobre os caracteres do código de barras
         // exceto o dígito verificador
-        let iterator_without_dv = barcode[..4].as_bytes()
+        let iterator_without_dv = barcode[..4]
+            .as_bytes()
             .iter()
-            .chain(barcode[5..].as_bytes().iter());
+            .chain(barcode[5..].as_bytes().iter())
+            .map(|x| *x);
 
-        let soma: u32 = iterator_without_dv.rev()
-            .map(|n| (n - 48) as u32)
-            .zip((2..=9).cycle())
-            .map(|(n, i)| n * i)
-            .sum();
-
-        match 11 - (soma % 11) {
-            10| 11 => Ok(1),
-            dv => Ok(dv as u8),
-        }
+        Ok(
+            dv_utils::mod_11_alternating_2_to_9(iterator_without_dv, 1)
+        )
     }
 }
 
@@ -184,7 +169,7 @@ impl BarcodeCobranca {
 mod tests {
     use chrono::NaiveDate;
 
-    use super::{BarcodeCobranca, CodigoMoeda};
+    use super::{Cobranca, CodigoMoeda};
 
     #[test]
     fn get_cod_banco_correctly() {
@@ -196,53 +181,48 @@ mod tests {
             ("00091444455555555556666666666666666666666666", 0),
         ];
         for (barcode, expected) in barcodes.iter() {
-            match BarcodeCobranca::new(barcode) {
+            match Cobranca::new(barcode) {
                 Err(e) => {
                     panic!("Barcode should be considered valid. ({:?})", e);
-                },
+                }
                 Ok(result) => {
                     assert_eq!(result.cod_banco, *expected)
-                },
+                }
             };
         }
     }
 
     #[test]
     fn get_cod_moeda_correctly() {
-        match BarcodeCobranca::new("11191444455555555556666666666666666666666666") {
+        match Cobranca::new("11191444455555555556666666666666666666666666") {
             Ok(result) => {
                 assert!(
                     matches!(result.cod_moeda, CodigoMoeda::Real),
                     "cod_moeda should be 'Real'",
                 );
-            },
+            }
             Err(e) => {
                 panic!("Barcode should be considered valid. ({:?})", e);
-            },
+            }
         };
 
-        match BarcodeCobranca::new("11105444455555555556666666666666666666666666") {
+        match Cobranca::new("11105444455555555556666666666666666666666666") {
             Ok(result) => {
                 assert!(
                     matches!(result.cod_moeda, CodigoMoeda::Outras),
                     "cod_moeda should be 'Outras'",
                 );
-            },
+            }
             Err(e) => {
                 panic!("Barcode should be considered valid. ({:?})", e);
-            },
+            }
         };
-
     }
 
     #[test]
     fn get_fator_vencimento_correctly() {
         let barcodes = [
-            (
-                "11196000055555555556666666666666666666666666",
-                0_u16,
-                None,
-            ),
+            ("11196000055555555556666666666666666666666666", 0_u16, None),
             (
                 "11199100055555555556666666666666666666666666",
                 1000,
@@ -300,35 +280,39 @@ mod tests {
             ),
         ];
         for (barcode, expected_fator, expected_date) in barcodes.iter() {
-            match BarcodeCobranca::new(barcode) {
+            match Cobranca::new(barcode) {
                 Err(e) => {
                     panic!("Barcode should be considered valid. ({:?})", e);
-                },
+                }
                 Ok(result) => {
                     assert_eq!(result.fator_vencimento, *expected_fator);
                     assert_eq!(result.data_vencimento, *expected_date);
-                },
+                }
             };
         }
-
-
     }
 
     #[test]
     fn get_valor_correctly() {
         let barcodes = [
-            ("11191444455555555556666666666666666666666666", Some(55555555.55_f64)),
-            ("11196444499999999996666666666666666666666666", Some(99999999.99)),
+            (
+                "11191444455555555556666666666666666666666666",
+                Some(55555555.55_f64),
+            ),
+            (
+                "11196444499999999996666666666666666666666666",
+                Some(99999999.99),
+            ),
             ("11193444400000000006666666666666666666666666", None),
         ];
         for (barcode, expected) in barcodes.iter() {
-            match BarcodeCobranca::new(barcode) {
+            match Cobranca::new(barcode) {
                 Err(e) => {
                     panic!("Barcode should be considered valid. ({:?}): {}", e, barcode);
-                },
+                }
                 Ok(result) => {
                     assert_eq!(result.valor, *expected);
-                },
+                }
             };
         }
     }
@@ -349,7 +333,7 @@ mod tests {
 
         for (barcode, expected) in barcodes.iter() {
             assert_eq!(
-                BarcodeCobranca::calculate_verifier_digit(barcode).unwrap(),
+                Cobranca::calculate_digito_verificador(barcode).unwrap(),
                 *expected,
             );
         }
@@ -386,7 +370,7 @@ mod tests {
 
         for (linha_digitavel, barcode) in barcodes.iter() {
             assert_eq!(
-                BarcodeCobranca::cod_barras_to_linha_digitavel(barcode).unwrap(),
+                Cobranca::cod_barras_to_linha_digitavel(barcode).unwrap(),
                 *linha_digitavel,
             );
         }
@@ -423,7 +407,7 @@ mod tests {
 
         for (linha_digitavel, barcode) in barcodes.iter() {
             assert_eq!(
-                BarcodeCobranca::linha_digitavel_to_cod_barras(linha_digitavel).unwrap(),
+                Cobranca::linha_digitavel_to_cod_barras(linha_digitavel).unwrap(),
                 *barcode,
             );
         }

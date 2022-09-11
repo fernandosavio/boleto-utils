@@ -27,6 +27,42 @@ pub mod barcode_utils {
     }
 }
 
+pub mod dv_utils {
+    pub fn mod_10_alternating_2_1<I>(values: I) -> u8
+    where
+        I: DoubleEndedIterator<Item = u8>
+    {
+        let soma: u8 = values.rev()
+            .map(|n| n - 48)
+            .zip([2, 1].iter().cycle())
+            .map(|(n, i)| {
+                match n * i {
+                    x if x > 9 => (x / 10) + (x % 10),
+                    x => x,
+                }
+            })
+            .sum();
+
+        10 - (soma % 10)
+    }
+
+    pub fn mod_11_alternating_2_to_9<I>(values: I, exception_value: u8) -> u8
+    where
+        I: DoubleEndedIterator<Item = u8>
+    {
+        let soma: u32 = values.rev()
+            .map(|n| (n - 48) as u32)
+            .zip((2..=9).cycle())
+            .map(|(n, i)| n * i)
+            .sum();
+
+        match 11 - (soma % 11) {
+            10 | 11 => exception_value,
+            dv => dv as u8,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use chrono::NaiveDate;
