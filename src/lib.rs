@@ -19,12 +19,13 @@ use crate::cobranca::BarcodeCobranca;
 
 
 #[derive(Debug)]
-pub enum Error {
-    NumbersOnly,
-    InvalidLength(usize),
+pub enum BoletoError {
     InvalidCodigoMoeda,
-    InvalidDigitableLine(String),
+    InvalidDigitoVerificador,
+    InvalidLength,
+    NumbersOnly,
 }
+
 
 // struct CampoLivreBradesco {
 //     agencia_beneficiaria: u32,
@@ -62,12 +63,12 @@ pub struct Boleto {
     tipo: TipoBoleto,
     codigo_barras: String,
     linha_digitavel: String,
-    valor: f64,
+    valor: Option<f64>,
     data_vencimento: Option<NaiveDate>,
 }
 
 impl TryFrom<&str> for Boleto {
-    type Error = Error;
+    type Error = BoletoError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         Self::new(value)
@@ -75,11 +76,11 @@ impl TryFrom<&str> for Boleto {
 }
 
 impl Boleto {
-    pub fn new(value: &str) -> Result<Self, Error> {
+    pub fn new(value: &str) -> Result<Self, BoletoError> {
 
         let only_numbers = value.chars().all(|c| c.is_ascii_digit());
         if !only_numbers {
-            return Err(Error::NumbersOnly);
+            return Err(BoletoError::NumbersOnly);
         }
 
         let (barcode, digitable_line): (String, String) = match value.len() {
@@ -91,7 +92,7 @@ impl Boleto {
                 barcode_utils::digitable_line_to_barcode(value),
                 String::from(value),
             ),
-            length => return Err(Error::InvalidLength(length)),
+            _ => return Err(BoletoError::InvalidLength),
         };
 
         match barcode.chars().next() {
@@ -135,7 +136,7 @@ mod tests {
             boleto.data_vencimento,
             Some(NaiveDate::from_ymd(2022, 5, 10))
         );
-        assert_eq!(boleto.valor, 214.03);
+        assert_eq!(boleto.valor, Some(214.03));
 
         println!("{:?}", boleto);
     }

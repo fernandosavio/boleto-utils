@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod tests {
-    use boleto_utils::{Boleto, Error};
+    use boleto_utils::{Boleto, BoletoError};
 
     #[test]
     fn invalid_input_error() {
         let input = "A".repeat(44);
         let result = Boleto::new(&input);
 
-        assert!(matches!(result, Err(Error::NumbersOnly)));
+        assert!(matches!(result, Err(BoletoError::NumbersOnly)));
     }
 
     #[test]
@@ -17,9 +17,9 @@ mod tests {
         for i in invalid_lengths {
             let input = "0".repeat(i);
             let result = Boleto::new(&input);
-    
-            assert!(matches!(result, Err(Error::InvalidLength(l))  if l == i));
+
+            assert!(matches!(result, Err(BoletoError::InvalidLength)));
        }
     }
-    
+
 }
