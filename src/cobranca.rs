@@ -2,6 +2,7 @@ use std::ops::Range;
 
 use crate::utils::{dv_utils, fator_vencimento_to_date};
 use crate::BoletoError;
+use crate::instituicoes_bancarias::InfoBanco;
 use chrono::NaiveDate;
 
 #[derive(Debug)]
@@ -13,6 +14,7 @@ pub enum CodigoMoeda {
 #[derive(Debug)]
 pub struct Cobranca {
     pub cod_banco: u16,
+    pub info_banco: Option<&'static InfoBanco>,
     pub cod_moeda: CodigoMoeda,
     pub digito_verificador: u8,
     pub fator_vencimento: u16,
@@ -59,6 +61,7 @@ impl Cobranca {
 
         Ok(Self {
             cod_banco,
+            info_banco: InfoBanco::get_by_id(cod_banco),
             cod_moeda,
             fator_vencimento,
             digito_verificador,
@@ -75,6 +78,10 @@ impl Cobranca {
         let only_numbers = barcode.chars().all(|c| c.is_ascii_digit());
         if !only_numbers {
             return Err(BoletoError::NumbersOnly);
+        }
+
+        if barcode.bytes().next() == Some(b'8') {
+            return Err(BoletoError::InvalidCobrancaBarcode);
         }
 
         Ok(())

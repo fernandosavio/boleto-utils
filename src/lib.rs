@@ -11,6 +11,7 @@
 
 mod utils;
 mod cobranca;
+mod instituicoes_bancarias;
 
 use std::convert::TryFrom;
 use chrono::NaiveDate;
@@ -23,6 +24,8 @@ pub enum BoletoError {
     InvalidCodigoMoeda,
     InvalidDigitoVerificador,
     InvalidLength,
+    InvalidCobrancaBarcode,
+    InvalidArrecadacaoBarcode,
     NumbersOnly,
 }
 
