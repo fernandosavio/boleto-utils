@@ -1,22 +1,10 @@
-/*
-111 2 3 4444 5555555555 6666666666666666666666666
-└┬┘ ┬ ┬ └┬─┘ └───┬────┘ └─────────┬─────────────┘
- │  │ │  │       │                └── `campo_livre`: Campo livre para uso dos bancos;
- │  │ │  │       └─────────────────── `valor`: Valor do boleto
- │  │ │  └─────────────────────────── `fator_vencimento`: Fator de vencimento
- │  │ └────────────────────────────── `digito_verificador`: Dígito verificador
- │  └──────────────────────────────── `codigo_moeda`: Código da Moeda (Real=9 e Outros=0)
- └─────────────────────────────────── `id_banco`: identificação do banco
-*/
-
 mod utils;
 mod cobranca;
+mod arrecadacao;
 mod instituicoes_bancarias;
 
-use std::convert::TryFrom;
-use chrono::NaiveDate;
-use crate::utils::barcode_utils;
 use crate::cobranca::Cobranca;
+use crate::arrecadacao::Arrecadacao;
 
 
 #[derive(Debug)]
@@ -26,104 +14,55 @@ pub enum BoletoError {
     InvalidLength,
     InvalidCobrancaBarcode,
     InvalidArrecadacaoBarcode,
+    InvalidSegmento,
+    InvalidTipoValor,
     NumbersOnly,
 }
 
 
-// struct CampoLivreBradesco {
-//     agencia_beneficiaria: u32,
-//     carteira: u8,
-//     nosso_numero: u32,
-// }
-
-
 #[derive(Debug)]
-pub enum TipoBoleto {
-    // Arrecadacao(Arrecadacao),
+pub enum Boleto {
+    Arrecadacao(Arrecadacao),
     Cobranca(Cobranca),
 }
 
-#[allow(dead_code)]
-#[derive(Debug)]
-pub struct Boleto {
-    tipo: TipoBoleto,
-    codigo_barras: String,
-    linha_digitavel: String,
-    valor: Option<f64>,
-    data_vencimento: Option<NaiveDate>,
-}
-
-impl TryFrom<&str> for Boleto {
-    type Error = BoletoError;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Self::new(value)
-    }
-}
-
 impl Boleto {
-    pub fn new(value: &str) -> Result<Self, BoletoError> {
+    pub fn new(value: &[u8]) -> Result<Self, BoletoError> {
 
-        let only_numbers = value.chars().all(|c| c.is_ascii_digit());
+        let only_numbers = value.iter().all(|c| c.is_ascii_digit());
         if !only_numbers {
             return Err(BoletoError::NumbersOnly);
         }
 
-        let (barcode, digitable_line): (String, String) = match value.len() {
-            44 => (
-                String::from(value),
-                barcode_utils::barcode_to_digitable_line(value),
-            ),
-            46..=48 => (
-                barcode_utils::digitable_line_to_barcode(value),
-                String::from(value),
-            ),
-            _ => return Err(BoletoError::InvalidLength),
-        };
-
-        match barcode.chars().next() {
-            None => unreachable!(),
-            Some('8') => todo!(),
-            _ => {
-                let cob = Cobranca::new(&barcode).unwrap();
-
-                Ok(
-                    Boleto {
-                        codigo_barras: barcode,
-                        linha_digitavel: digitable_line,
-                        data_vencimento: cob.data_vencimento,
-                        valor: cob.valor,
-                        tipo: TipoBoleto::Cobranca(cob),
-                    }
-                )
-            },
+        match value.first() {
+            None => return Err(BoletoError::InvalidLength),
+            // Some(b'8') => Ok(Boleto::Arrecadacao(Arrecadacao::new(value)?)),
+            _ => Ok(Boleto::Cobranca(Cobranca::new(&value)?)),
         }
     }
-
-
 }
 
 #[cfg(test)]
 mod tests {
     use chrono::NaiveDate;
 
-    use crate::{Boleto, TipoBoleto};
+    use crate::Boleto;
 
     #[test]
     fn valid_barcode() {
-        let barcode = "10499898100000214032006561000100040099726390";
+        let barcode = b"10499898100000214032006561000100040099726390";
 
         let boleto = Boleto::new(barcode).unwrap();
 
-        assert!(
-            matches!(boleto.tipo, TipoBoleto::Cobranca(_))
-        );
-        assert_eq!(
-            boleto.data_vencimento,
-            Some(NaiveDate::from_ymd(2022, 5, 10))
-        );
-        assert_eq!(boleto.valor, Some(214.03));
-
-        println!("{:?}", boleto);
+        match boleto {
+            Boleto::Cobranca(cob) => {
+                assert_eq!(
+                    cob.data_vencimento,
+                    Some(NaiveDate::from_ymd(2022, 5, 10))
+                );
+                assert_eq!(cob.valor, Some(214.03));
+            },
+            _ => assert!(false, "Should be Cobranca"),
+        }
     }
 }
