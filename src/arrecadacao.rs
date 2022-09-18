@@ -1,5 +1,5 @@
 use std::convert::TryFrom;
-use std::str;
+use std::{str,fmt};
 
 use crate::utils::dv_utils;
 use crate::BoletoError;
@@ -60,13 +60,24 @@ impl TryFrom<u8> for TipoValor {
     }
 }
 
-#[derive(Debug)]
 pub enum Convenio {
     Carne([u8; 8]),
     Outros([u8; 4]),
 }
 
-#[derive(Debug)]
+impl fmt::Debug for Convenio {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self {
+            Self::Carne(x) => f.debug_tuple("Carne")
+                .field(&str::from_utf8(x).unwrap())
+                .finish(),
+            Self::Outros(x) => f.debug_tuple("Outros")
+                .field(&str::from_utf8(x).unwrap())
+                .finish()
+        }
+    }
+}
+
 pub struct Arrecadacao {
     pub cod_barras: [u8; 44],
     pub linha_digitavel: [u8; 48],
@@ -75,6 +86,20 @@ pub struct Arrecadacao {
     pub digito_verificador: u8,
     pub valor: Option<f64>,
     pub convenio: Convenio,
+}
+
+impl fmt::Debug for Arrecadacao {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Arrecadacao")
+            .field("cod_barras", &str::from_utf8(&self.cod_barras).unwrap())
+            .field("linha_digitavel", &str::from_utf8(&self.linha_digitavel).unwrap())
+            .field("segmento", &self.segmento)
+            .field("tipo_valor", &self.tipo_valor)
+            .field("digito_verificador", &(self.digito_verificador - b'0'))
+            .field("valor", &self.valor)
+            .field("convenio", &self.convenio)
+            .finish()
+    }
 }
 
 impl Arrecadacao {
@@ -206,7 +231,7 @@ impl Arrecadacao {
 
         // Campo 4
         digitable_line[36..47].copy_from_slice(&barcode[33..44]);
-        digitable_line[47] = dv_utils::mod_10(digitable_line[36..48].iter());
+        digitable_line[47] = dv_utils::mod_10(digitable_line[36..47].iter());
 
         Ok(digitable_line)
     }
@@ -216,9 +241,9 @@ impl Arrecadacao {
 
         // Cria um iterator que itera sobre os caracteres do código de barras
         // exceto o dígito verificador
-        let iterator_without_dv = barcode[..4]
+        let iterator_without_dv = barcode[..3]
             .iter()
-            .chain(barcode[5..].iter());
+            .chain(barcode[4..].iter());
 
         match tipo {
             TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10 => Ok(
@@ -244,12 +269,5 @@ impl Arrecadacao {
 }
 
 mod tests {
-    use super::Arrecadacao;
 
-    #[test]
-    fn geral() {
-        let a = Arrecadacao::new(b"83670000001283401110000010102022342248028780").unwrap();
-        println!("{:?}", a);
-        assert!(false);
-    }
 }

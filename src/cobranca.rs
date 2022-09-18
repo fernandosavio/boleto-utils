@@ -1,4 +1,4 @@
-use std::str;
+use std::{str,fmt};
 
 
 use crate::utils::{dv_utils, fator_vencimento_to_date, u8_array_to_u16};
@@ -12,7 +12,6 @@ pub enum CodigoMoeda {
     Outras,
 }
 
-#[derive(Debug)]
 pub struct Cobranca {
     pub cod_barras: [u8; 44],
     pub linha_digitavel: [u8; 47],
@@ -24,6 +23,23 @@ pub struct Cobranca {
     pub data_vencimento: Option<NaiveDate>,
     pub valor: Option<f64>,
 }
+
+impl fmt::Debug for Cobranca {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Arrecadacao")
+            .field("cod_barras", &str::from_utf8(&self.cod_barras).unwrap())
+            .field("linha_digitavel", &str::from_utf8(&self.linha_digitavel).unwrap())
+            .field("cod_banco", &self.cod_banco)
+            .field("info_banco", &self.info_banco)
+            .field("cod_moeda", &self.cod_moeda)
+            .field("digito_verificador", &(self.digito_verificador - b'0'))
+            .field("fator_vencimento", &self.fator_vencimento)
+            .field("data_vencimento", &self.data_vencimento)
+            .field("valor", &self.valor)
+            .finish()
+    }
+}
+
 
 impl Cobranca {
     pub fn new(value: &[u8]) -> Result<Self, BoletoError> {
