@@ -71,6 +71,10 @@ impl Cobranca {
 
         let fator_vencimento: u16 = u8_array_to_u16(&cod_barras[5..9]);
 
+        if fator_vencimento > 0 && fator_vencimento < 1000 {
+            return Err(BoletoError::InvalidCodigoMoeda)
+        }
+
         let valor = {
             let x = unsafe { str::from_utf8_unchecked(&cod_barras[9..19]) };
             match  x.parse::<f64>().unwrap()
@@ -253,17 +257,17 @@ mod tests {
             (
                 b"11199100055555555556666666666666666666666666",
                 1000,
-                Some(NaiveDate::from_ymd(2000, 7, 3)),
+                Some(NaiveDate::from_ymd(2025, 2, 22)),
             ),
             (
                 b"11191100255555555556666666666666666666666666",
                 1002,
-                Some(NaiveDate::from_ymd(2000, 7, 5)),
+                Some(NaiveDate::from_ymd(2025, 2, 24)),
             ),
             (
                 b"11196166755555555556666666666666666666666666",
                 1667,
-                Some(NaiveDate::from_ymd(2002, 5, 1)),
+                Some(NaiveDate::from_ymd(2026, 12, 21)),
             ),
             (
                 b"11198478955555555556666666666666666666666666",

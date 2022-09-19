@@ -9,14 +9,15 @@ use crate::arrecadacao::Arrecadacao;
 
 #[derive(Debug)]
 pub enum BoletoError {
+    NumbersOnly,
+    InvalidLength,
     InvalidCodigoMoeda,
     InvalidDigitoVerificador,
-    InvalidLength,
     InvalidCobrancaBarcode,
+    InvalidFatorVencimento,
     InvalidArrecadacaoBarcode,
     InvalidSegmento,
     InvalidTipoValor,
-    NumbersOnly,
 }
 
 

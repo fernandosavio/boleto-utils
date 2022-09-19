@@ -1,14 +1,30 @@
 use std::convert::TryInto;
+use lazy_static::lazy_static;
 
 use chrono::{Duration, NaiveDate};
 
-fn get_base_date() -> NaiveDate {
-    NaiveDate::from_ymd(1997, 10, 7)
+// Fator para o dia 1º de Janeiro de 2010
+const FATOR_VENC_2010: u16 = 4469;
+
+lazy_static! {
+    /// Data base usada até 2025 (1000 == 03/07/2000)
+    static ref CURRENT_BASE_DATE: NaiveDate = NaiveDate::from_ymd(1997, 10, 7);
+
+    /// Data base usada de 2025 em diante (1000 == 22/02/2025)
+    static ref NEXT_BASE_DATE: NaiveDate = NaiveDate::from_ymd(2022, 5, 29);
 }
 
 pub fn fator_vencimento_to_date(fator: u16) -> Option<NaiveDate> {
-    if fator > 0 {
-        Some(get_base_date() + Duration::days(fator.into()))
+    // Para fatores menores que o limite, calculamos datas do passado (de 2010 em diante)
+    let base = if fator >= FATOR_VENC_2010 {
+        *CURRENT_BASE_DATE
+    } else  {
+        // Para fatores maiores que o limite, calculamos datas do futuro (de 2025 em diante)
+        *NEXT_BASE_DATE
+    };
+
+    if fator >= 1000 {
+        Some(base + Duration::days(fator.into()))
     } else {
         None
     }
@@ -16,7 +32,12 @@ pub fn fator_vencimento_to_date(fator: u16) -> Option<NaiveDate> {
 
 #[allow(dead_code)]
 pub fn date_to_fator_vencimento(date: NaiveDate) -> Option<u16> {
-    (date - get_base_date()).num_days().try_into().ok()
+    let base = if date < NaiveDate::from_ymd(2025, 2, 22) {
+        *CURRENT_BASE_DATE
+    } else {
+        *NEXT_BASE_DATE
+    };
+    (date - base).num_days().try_into().ok()
 }
 
 pub fn u8_array_to_u16(slice: &[u8]) -> u16 {
@@ -67,22 +88,22 @@ pub mod dv_utils {
 mod tests {
     use chrono::NaiveDate;
 
-    use crate::utils::{date_to_fator_vencimento, fator_vencimento_to_date, u8_array_to_u16};
+    use crate::utils::{date_to_fator_vencimento, fator_vencimento_to_date, u8_array_to_u16, FATOR_VENC_2010};
     use crate::utils::dv_utils::{mod_10, mod_11};
 
     #[test]
     fn convert_fator_vencimento_to_naive_date_correctly() {
         assert_eq!(
-            fator_vencimento_to_date(1000),
-            Some(NaiveDate::from_ymd(2000, 7, 3)),
+            fator_vencimento_to_date(FATOR_VENC_2010),
+            Some(NaiveDate::from_ymd(2010, 1, 1)),
         );
         assert_eq!(
-            fator_vencimento_to_date(1002),
-            Some(NaiveDate::from_ymd(2000, 7, 5)),
+            fator_vencimento_to_date(FATOR_VENC_2010 + 1),
+            Some(NaiveDate::from_ymd(2010, 1, 2)),
         );
         assert_eq!(
-            fator_vencimento_to_date(1667),
-            Some(NaiveDate::from_ymd(2002, 5, 1)),
+            fator_vencimento_to_date(FATOR_VENC_2010 - 1),
+            Some(NaiveDate::from_ymd(2034, 8, 22)),
         );
         assert_eq!(
             fator_vencimento_to_date(4789),
@@ -92,21 +113,29 @@ mod tests {
             fator_vencimento_to_date(9999),
             Some(NaiveDate::from_ymd(2025, 2, 21)),
         );
+        assert_eq!(
+            fator_vencimento_to_date(1000),
+            Some(NaiveDate::from_ymd(2025, 2, 22)),
+        );
+        assert_eq!(
+            fator_vencimento_to_date(1002),
+            Some(NaiveDate::from_ymd(2025, 2, 24)),
+        );
+        assert_eq!(
+            fator_vencimento_to_date(1667),
+            Some(NaiveDate::from_ymd(2026, 12, 21)),
+        );
     }
 
     #[test]
     fn convert_naive_date_to_fator_vencimento_correctly() {
         assert_eq!(
-            date_to_fator_vencimento(NaiveDate::from_ymd(2000, 7, 3)),
-            Some(1000),
+            date_to_fator_vencimento(NaiveDate::from_ymd(2010, 1, 2)),
+            Some(FATOR_VENC_2010 + 1),
         );
         assert_eq!(
-            date_to_fator_vencimento(NaiveDate::from_ymd(2000, 7, 5)),
-            Some(1002),
-        );
-        assert_eq!(
-            date_to_fator_vencimento(NaiveDate::from_ymd(2002, 5, 1)),
-            Some(1667),
+            date_to_fator_vencimento(NaiveDate::from_ymd(2034, 8, 22)),
+            Some(FATOR_VENC_2010 - 1),
         );
         assert_eq!(
             date_to_fator_vencimento(NaiveDate::from_ymd(2010, 11, 17)),
@@ -115,6 +144,18 @@ mod tests {
         assert_eq!(
             date_to_fator_vencimento(NaiveDate::from_ymd(2025, 2, 21)),
             Some(9999),
+        );
+        assert_eq!(
+            date_to_fator_vencimento(NaiveDate::from_ymd(2025, 2, 22)),
+            Some(1000),
+        );
+        assert_eq!(
+            date_to_fator_vencimento(NaiveDate::from_ymd(2025, 2, 24)),
+            Some(1002),
+        );
+        assert_eq!(
+            date_to_fator_vencimento(NaiveDate::from_ymd(2026, 12, 21)),
+            Some(1667),
         );
     }
 
