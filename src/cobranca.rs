@@ -1,20 +1,160 @@
-use std::{str,fmt};
-
-
 use crate::utils::{dv_utils, fator_vencimento_to_date, u8_array_to_u16};
 use crate::BoletoError;
 use crate::instituicoes_bancarias::InfoBanco;
 use chrono::NaiveDate;
+
+pub struct CodBarras([u8; Cobranca::COD_BARRAS_LENGTH]);
+
+impl CodBarras {
+    pub fn new(input: &[u8]) -> Result<Self, BoletoError> {
+        if input.first() == Some(&b'8') {
+            return Err(BoletoError::InvalidArrecadacaoBarcode);
+        }
+
+        if input.len() != Cobranca::COD_BARRAS_LENGTH {
+            return Err(BoletoError::InvalidLength);
+        }
+
+        let only_numbers = input.iter().all(|c| c.is_ascii_digit());
+        if !only_numbers {
+            return Err(BoletoError::NumbersOnly);
+        }
+
+        let mut cod_barras = [0u8; Cobranca::COD_BARRAS_LENGTH];
+        cod_barras.copy_from_slice(input);
+
+        Ok(Self(cod_barras))
+    }
+}
+
+impl From<&LinhaDigitavel> for CodBarras {
+    fn from(linha_digitavel: &LinhaDigitavel) -> Self {
+
+        // 00000 00000 11111 111112 22222 222233 3 33333334444444
+        // 01234.56789 01234.567890 12345.678901 2 34567890123456
+        // AAABC.CCCCX DDDDD.DDDDDY EEEEE.EEEEEZ K UUUUVVVVVVVVVV
+
+        // 00000000001111111111222222222233333333334444
+        // 01234567890123456789012345678901234567890123
+        // AAABKUUUUVVVVVVVVVVCCCCCDDDDDDDDDDEEEEEEEEEE
+
+        let LinhaDigitavel(src) = linha_digitavel;
+        let mut barcode = [0_u8; Cobranca::COD_BARRAS_LENGTH];
+
+        barcode[0..4].copy_from_slice(&src[0..4]);
+        barcode[4..19].copy_from_slice(&src[32..47]);
+        barcode[19..24].copy_from_slice(&src[4..9]);
+        barcode[24..34].copy_from_slice(&src[10..20]);
+        barcode[34..44].copy_from_slice(&src[21..31]);
+
+        Self(barcode)
+    }
+}
+
+impl std::fmt::Debug for CodBarras {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("CodBarras")
+            .field(unsafe { &std::str::from_utf8_unchecked(&self.0)})
+            .finish()
+    }
+}
+
+impl std::ops::Deref for CodBarras {
+    type Target = [u8; Cobranca::COD_BARRAS_LENGTH];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+pub struct LinhaDigitavel([u8; Cobranca::LINHA_DIGITAVEL_LENGTH]);
+
+impl LinhaDigitavel {
+    pub fn new(input: &[u8]) -> Result<Self, BoletoError> {
+        if input.first() == Some(&b'8') {
+            return Err(BoletoError::InvalidArrecadacaoBarcode);
+        }
+
+        if input.len() != Cobranca::LINHA_DIGITAVEL_LENGTH {
+            return Err(BoletoError::InvalidLength);
+        }
+
+        let only_numbers = input.iter().all(|c| c.is_ascii_digit());
+        if !only_numbers {
+            return Err(BoletoError::NumbersOnly);
+        }
+
+        let mut linha_digitavel = [0u8; Cobranca::LINHA_DIGITAVEL_LENGTH];
+        linha_digitavel.copy_from_slice(input);
+
+        Ok(Self(linha_digitavel))
+    }
+}
+
+impl From<&CodBarras> for LinhaDigitavel {
+    fn from(cod_barras: &CodBarras) -> Self {
+        // 00000000001111111111222222222233333333334444
+        // 01234567890123456789012345678901234567890123
+        // AAABKUUUUVVVVVVVVVVCCCCCDDDDDDDDDDEEEEEEEEEE
+
+        // 00000 00000 11111 111112 22222 222233 3 33333334444444
+        // 01234.56789 01234.567890 12345.678901 2 34567890123456
+        // AAABC.CCCCX DDDDD.DDDDDY EEEEE.EEEEEZ K UUUUVVVVVVVVVV
+        // 75691.43436 01033.723402 00149.330011 6 90380000250000
+
+        let CodBarras(src) = cod_barras;
+
+        let mut digitable_line = [0_u8; Cobranca::LINHA_DIGITAVEL_LENGTH];
+
+        // Campo 1
+        digitable_line[0..4].copy_from_slice(&src[0..4]);
+        digitable_line[4..9].copy_from_slice(&src[19..24]);
+        digitable_line[9] = dv_utils::mod_10(digitable_line[0..9].iter());
+
+        // Campo 2
+        digitable_line[10..20].copy_from_slice(&src[24..34]);
+        digitable_line[20] = dv_utils::mod_10(digitable_line[10..20].iter());
+
+        // Campo 3
+        digitable_line[21..31].copy_from_slice(&src[34..44]);
+        digitable_line[31] = dv_utils::mod_10(digitable_line[21..31].iter());
+
+        // DV
+        digitable_line[32] = src[4];
+
+        // Campo 4
+        digitable_line[33..47].copy_from_slice(&src[5..19]);
+
+        Self(digitable_line)
+    }
+}
+
+impl std::fmt::Debug for LinhaDigitavel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("LinhaDigitavel")
+            .field(unsafe { &std::str::from_utf8_unchecked(&self.0)})
+            .finish()
+    }
+}
+
+impl std::ops::Deref for LinhaDigitavel {
+    type Target = [u8; Cobranca::LINHA_DIGITAVEL_LENGTH];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 
 #[derive(Debug)]
 pub enum CodigoMoeda {
     Real,
     Outras,
 }
-
+#[derive(Debug)]
 pub struct Cobranca {
-    pub cod_barras: [u8; 44],
-    pub linha_digitavel: [u8; 47],
+    pub cod_barras: CodBarras,
+    pub linha_digitavel: LinhaDigitavel,
     pub cod_banco: u16,
     pub info_banco: Option<&'static InfoBanco>,
     pub cod_moeda: CodigoMoeda,
@@ -24,39 +164,21 @@ pub struct Cobranca {
     pub valor: Option<f64>,
 }
 
-impl fmt::Debug for Cobranca {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Arrecadacao")
-            .field("cod_barras", &str::from_utf8(&self.cod_barras).unwrap())
-            .field("linha_digitavel", &str::from_utf8(&self.linha_digitavel).unwrap())
-            .field("cod_banco", &self.cod_banco)
-            .field("info_banco", &self.info_banco)
-            .field("cod_moeda", &self.cod_moeda)
-            .field("digito_verificador", &(self.digito_verificador - b'0'))
-            .field("fator_vencimento", &self.fator_vencimento)
-            .field("data_vencimento", &self.data_vencimento)
-            .field("valor", &self.valor)
-            .finish()
-    }
-}
-
 
 impl Cobranca {
+    const COD_BARRAS_LENGTH: usize = 44;
+    const LINHA_DIGITAVEL_LENGTH: usize = 47;
+
     pub fn new(value: &[u8]) -> Result<Self, BoletoError> {
-        let _ = Self::validate(value)?;
-
-        let (cod_barras,linha_digitavel) = match value.len() {
-            44 => {
-                let mut barcode = [0_u8; 44];
-                barcode.copy_from_slice(value);
-
-                (barcode, Self::cod_barras_to_linha_digitavel(&barcode)?)
+        let (cod_barras, linha_digitavel): (CodBarras, LinhaDigitavel) = match value.len() {
+            Self::COD_BARRAS_LENGTH => {
+                let cod_barras = CodBarras::new(value)?;
+                let linha_digitavel = LinhaDigitavel::from(&cod_barras);
+                (cod_barras, linha_digitavel)
             },
-            47 => {
-                let mut digitable_line = [0_u8; 47];
-                digitable_line.copy_from_slice(value);
-
-                (Self::linha_digitavel_to_cod_barras(&digitable_line)?, digitable_line)
+            Self::LINHA_DIGITAVEL_LENGTH => {
+                let linha_digitavel = LinhaDigitavel::new(value)?;
+                ((&linha_digitavel).into(), linha_digitavel)
             },
             _ => return Err(BoletoError::InvalidLength),
         };
@@ -76,7 +198,7 @@ impl Cobranca {
         }
 
         let valor = {
-            let x = unsafe { str::from_utf8_unchecked(&cod_barras[9..19]) };
+            let x = unsafe { std::str::from_utf8_unchecked(&cod_barras[9..19]) };
             match  x.parse::<f64>().unwrap()
             {
                 x if x.is_normal() => Some(x / 100.00),
@@ -103,87 +225,7 @@ impl Cobranca {
         })
     }
 
-    pub fn validate(barcode: &[u8]) -> Result<(), BoletoError> {
-        let only_numbers = barcode.iter().all(|c| c.is_ascii_digit());
-        if !only_numbers {
-            return Err(BoletoError::NumbersOnly);
-        }
-
-        if barcode.first() == Some(&b'8') {
-            return Err(BoletoError::InvalidCobrancaBarcode);
-        }
-
-        Ok(())
-    }
-
-    pub fn linha_digitavel_to_cod_barras(digitable_line: &[u8; 47]) -> Result<[u8; 44], BoletoError> {
-        let _ = Self::validate(digitable_line)?;
-
-        let mut barcode = [0_u8; 44];
-
-        // 00000 00000 11111 111112 22222 222233 3 33333334444444
-        // 01234.56789 01234.567890 12345.678901 2 34567890123456
-        // AAABC.CCCCX DDDDD.DDDDDY EEEEE.EEEEEZ K UUUUVVVVVVVVVV
-
-        // 00000000001111111111222222222233333333334444
-        // 01234567890123456789012345678901234567890123
-        // AAABKUUUUVVVVVVVVVVCCCCCDDDDDDDDDDEEEEEEEEEE
-
-        barcode[0..4].copy_from_slice(&digitable_line[0..4]);
-        barcode[4..19].copy_from_slice(&digitable_line[32..47]);
-        barcode[19..24].copy_from_slice(&digitable_line[4..9]);
-        barcode[24..34].copy_from_slice(&digitable_line[10..20]);
-        barcode[34..44].copy_from_slice(&digitable_line[21..31]);
-
-        Ok(barcode)
-    }
-
-    pub fn cod_barras_to_linha_digitavel(barcode: &[u8; 44]) -> Result<[u8; 47], BoletoError> {
-        let _ = Self::validate(barcode)?;
-
-        let mut digitable_line = [0_u8; 47];
-
-        // 00000000001111111111222222222233333333334444
-        // 01234567890123456789012345678901234567890123
-        // AAABKUUUUVVVVVVVVVVCCCCCDDDDDDDDDDEEEEEEEEEE
-
-        // 75696903800002500001434301033723400014933001
-
-
-        // 75691 4343X 01033 72340X 00149 33001X 6 90380000250000
-        // 21212 1212
-
-
-        // 00000 00000 11111 111112 22222 222233 3 33333334444444
-        // 01234.56789 01234.567890 12345.678901 2 34567890123456
-        // AAABC.CCCCX DDDDD.DDDDDY EEEEE.EEEEEZ K UUUUVVVVVVVVVV
-        // 75691.43436 01033.723402 00149.330011 6 90380000250000
-
-        // Campo 1
-        digitable_line[0..4].copy_from_slice(&barcode[0..4]);
-        digitable_line[4..9].copy_from_slice(&barcode[19..24]);
-        digitable_line[9] = dv_utils::mod_10(digitable_line[0..9].iter());
-
-        // Campo 2
-        digitable_line[10..20].copy_from_slice(&barcode[24..34]);
-        digitable_line[20] = dv_utils::mod_10(digitable_line[10..20].iter());
-
-        // Campo 3
-        digitable_line[21..31].copy_from_slice(&barcode[34..44]);
-        digitable_line[31] = dv_utils::mod_10(digitable_line[21..31].iter());
-
-        // DV
-        digitable_line[32] = barcode[4];
-
-        // Campo 4
-        digitable_line[33..47].copy_from_slice(&barcode[5..19]);
-
-        Ok(digitable_line)
-    }
-
-    fn calculate_digito_verificador(barcode: &[u8; 44]) -> Result<u8, BoletoError> {
-        let _ = Self::validate(barcode)?;
-
+    fn calculate_digito_verificador(barcode: &CodBarras) -> Result<u8, BoletoError> {
         // Cria um iterator que itera sobre os caracteres do código de barras
         // exceto o dígito verificador
         let iterator_without_dv = barcode[..4]
@@ -200,7 +242,9 @@ impl Cobranca {
 mod tests {
     use chrono::NaiveDate;
 
-    use super::{Cobranca, CodigoMoeda};
+    use crate::cobranca::LinhaDigitavel;
+
+    use super::{Cobranca, CodigoMoeda, CodBarras};
 
     #[test]
     fn get_cod_banco_correctly() {
@@ -363,8 +407,11 @@ mod tests {
         ];
 
         for (barcode, expected) in barcodes.iter() {
+
             assert_eq!(
-                Cobranca::calculate_digito_verificador(barcode).unwrap(),
+                Cobranca::calculate_digito_verificador(
+                    &CodBarras::new(*barcode).unwrap()
+                ).unwrap(),
                 *expected,
             );
         }
@@ -401,7 +448,7 @@ mod tests {
 
         for (linha_digitavel, barcode) in barcodes.iter() {
             assert_eq!(
-                Cobranca::cod_barras_to_linha_digitavel(barcode).unwrap(),
+                LinhaDigitavel::from(&CodBarras::new(*barcode).unwrap()).0,
                 **linha_digitavel,
             );
         }
@@ -438,7 +485,7 @@ mod tests {
 
         for (linha_digitavel, barcode) in barcodes.iter() {
             assert_eq!(
-                Cobranca::linha_digitavel_to_cod_barras(linha_digitavel).unwrap(),
+                CodBarras::from(&LinhaDigitavel::new(*linha_digitavel).unwrap()).0,
                 **barcode,
             );
         }

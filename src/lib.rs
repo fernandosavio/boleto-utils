@@ -29,16 +29,10 @@ pub enum Boleto {
 
 impl Boleto {
     pub fn new(value: &[u8]) -> Result<Self, BoletoError> {
-
-        let only_numbers = value.iter().all(|c| c.is_ascii_digit());
-        if !only_numbers {
-            return Err(BoletoError::NumbersOnly);
-        }
-
         match value.first() {
-            None => return Err(BoletoError::InvalidLength),
-            // Some(b'8') => Ok(Boleto::Arrecadacao(Arrecadacao::new(value)?)),
-            _ => Ok(Boleto::Cobranca(Cobranca::new(&value)?)),
+            None => Err(BoletoError::InvalidLength),
+            Some(b'8') => Ok(Boleto::Arrecadacao(Arrecadacao::new(value)?)),
+            _ => Ok(Boleto::Cobranca(Cobranca::new(value)?)),
         }
     }
 }
@@ -46,7 +40,6 @@ impl Boleto {
 #[cfg(test)]
 mod tests {
     use chrono::NaiveDate;
-
     use crate::Boleto;
 
     #[test]
