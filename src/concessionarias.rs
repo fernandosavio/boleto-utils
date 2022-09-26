@@ -5,19 +5,21 @@ use std::fs;
 
 use lazy_static::lazy_static;
 
+use crate::arrecadacao::Segmento;
+
 
 lazy_static! {
-    static ref REGISTRY_BY_ID: HashMap<u16, InfoBanco> = {
-        let file = fs::File::open("data/instituicoes-bancarias.csv").expect("File not opened");
+    static ref PREFEITURAS: HashMap<u16, InfoConvenio> = {
+        let file = fs::File::open("data/concessionarias-1-prefeituras.csv")
+            .expect("File not opened");
         let mut reader = csv::Reader::from_reader(file);
 
         reader.records()
             .map(|line| {
                 let record = line.expect("Line not parsed");
-                let banco: InfoBanco = InfoBanco {
-                    id: record[0].parse().expect("id not parsed"),
-                    nome: record[1].to_string(),
-                    cnpj_base: record[2].to_string(),
+                let banco: InfoConvenio = InfoConvenio {
+                    id: record[1].parse().expect("id not parsed"),
+                    nome: record[0].to_string(),
                 };
                 (banco.id, banco)
             })
@@ -25,44 +27,45 @@ lazy_static! {
     };
 }
 
-#[allow(dead_code)]
 #[derive(Debug)]
-pub struct InfoBanco {
-    id: u16,
-    nome: String,
-    cnpj_base: String,
+pub struct InfoConvenio {
+    pub id: u16,
+    pub nome: String,
 }
 
-impl InfoBanco {
-    pub fn get_by_id(id: u16) -> Option<&'static InfoBanco> {
-        REGISTRY_BY_ID.get(&id)
+impl InfoConvenio {
+    pub fn get(segmento: &Segmento, id: u16) -> Option<&'static InfoConvenio> {
+        match segmento {
+            Segmento::Prefeituras => PREFEITURAS.get(&id),
+            _ => unimplemented!(),
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::instituicoes_bancarias::REGISTRY_BY_ID;
-
-    use super::InfoBanco;
+    use super::{InfoConvenio, PREFEITURAS};
+    use crate::arrecadacao::Segmento;
 
     #[test]
-    fn should_load_and_get_info_bancos() {
-        let info = InfoBanco::get_by_id(0);
+    fn should_load_and_get_prefeituras() {
+        const SEG: &Segmento = &Segmento::Prefeituras;
+
+        let info = InfoConvenio::get(SEG, 9999);
         assert!(matches!(info, None));
 
-        println!("HashMap.len() == {}", REGISTRY_BY_ID.len());
+        println!("HashMap.len() == {}", PREFEITURAS.len());
 
-        let info = InfoBanco::get_by_id(1).expect("Find by ID");
-        assert_eq!(info.id, 1);
-        assert!(info.nome.contains("Banco do Brasil"));
-        assert_eq!(info.cnpj_base, "00000000");
+        let info = InfoConvenio::get(SEG, 0).expect("Find by ID");
+        assert_eq!(info.id, 0);
+        assert!(info.nome.contains("São Paulo"));
 
-        let info = InfoBanco::get_by_id(341).expect("Find by ID");
-        assert_eq!(info.id, 341);
-        assert!(info.nome.contains("Itaú"));
+        let info = InfoConvenio::get(SEG, 3659).expect("Find by ID");
+        assert_eq!(info.id, 3659);
+        assert!(info.nome.contains("Rio de Janeiro"));
 
-        let info = InfoBanco::get_by_id(655).expect("Find by ID");
-        assert_eq!(info.id, 655);
-        assert!(info.nome.contains("Votorantim"));
+        let info = InfoConvenio::get(SEG, 1319).expect("Find by ID");
+        assert_eq!(info.id, 1319);
+        assert!(info.nome.contains("Curitiba"));
     }
 }

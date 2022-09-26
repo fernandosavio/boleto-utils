@@ -17,7 +17,6 @@ lazy_static! {
                 let banco: InfoBanco = InfoBanco {
                     id: record[0].parse().expect("id not parsed"),
                     nome: record[1].to_string(),
-                    cnpj_base: record[2].to_string(),
                 };
                 (banco.id, banco)
             })
@@ -30,7 +29,6 @@ lazy_static! {
 pub struct InfoBanco {
     id: u16,
     nome: String,
-    cnpj_base: String,
 }
 
 impl InfoBanco {
@@ -55,7 +53,6 @@ mod tests {
         let info = InfoBanco::get_by_id(1).expect("Find by ID");
         assert_eq!(info.id, 1);
         assert!(info.nome.contains("Banco do Brasil"));
-        assert_eq!(info.cnpj_base, "00000000");
 
         let info = InfoBanco::get_by_id(341).expect("Find by ID");
         assert_eq!(info.id, 341);

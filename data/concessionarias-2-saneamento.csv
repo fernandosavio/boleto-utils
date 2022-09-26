@@ -1,0 +1,404 @@
+nome,codigo
+Agespisa Água e Esgoto do Piauí,1
+CAEMA Maranhão,2
+CAER Roraima,4
+CAERD Rondônia,5
+CAERN Rio Grande do Norte,6
+CAESA Amapá,7
+CAESB Brasília,8
+CAGECE Fortaleza,9
+CAGEPA Paraíba,10
+CASAL Alagoas,12
+CASAN Santa Catarina,13
+CEDAE Rio de Janeiro,14
+CESAMA Juis de Fora/MG,15
+CESAN Espírito Santo,16
+CODAU Uberaba/SP,17
+COMPESA Pernambuco,18
+COPASA Minas Gerais,19
+COSAMA Amazonas,21
+COSANPA Pará,22
+DAAE Araraquara,24
+DAAE Rio Claro,26
+DAE Americana,27
+DAE Baurú,29
+DAE Jundiaí,31
+DAE Marília,32
+DAE Santa Bárbara do Oeste,33
+DAE Santana do Livramento,34
+DAE São Caetano do Sul,35
+DAE Sumaré,36
+DAE Valinhos,37
+DAAE Bagé,38
+DAEMO Olímpia,39
+DAERP Ribeirão Preto,40
+DESO Sergipe,41
+DMAE Poços de Caldas,42
+DMAE Porto Alegre,43
+DMAE Uberlândia,44
+Emasa Itabuna,46
+Embasa Bahia,47
+SAAE Águas de Lindóia,50
+SAAR Amparo,51
+SAAE Aracruz/ES,52
+SAAE Atibaia,53
+SAAE Barra Bonita,55
+SAAE Barretos,56
+SAAE Buritama,58
+BRK Ambiental Cachoeiro de Itapemirim,59
+SAEE Cacoal,60
+SAAE Cândido Mota,61
+SAAE Capivari,62
+SAAE Costa Rica,65
+SAAE Extremoz,66
+SAAE Garça,68
+SAAE Guarulhos,69
+SAAE Guaratinguetá,70
+SAAE Indaiatuba,71
+SAAE Itapirá,72
+SAAE Ituiutuba,74
+SAAE Jaboticabal,75
+SAAE Jacareí,76
+SAAE Lençóis Paulista,77
+SAAE Limeira,78
+SAAE Linhares,79
+SAAE Mogi Mirim,81
+SAAE Nova Mutum,82
+SAAE Palmital,83
+SAAE Passos,85
+SAAE Pelotas,86
+SAAE Promissão,87
+SAAE São Carlos,89
+SAAE Sorocaba,91
+SAAE Taquaritinga,92
+SAAE Unaí,93
+SAAE Volta Redonda,95
+SABESP São Paulo,97
+SAECIL Leme,98
+SAE Araras,99
+SAMAE Jaraguá do Sul,101
+SAMAE Mogi Guaçu,102
+SAAE Tietê,103
+SANASA Campinas,105
+SANEAGO Goiás,106
+SANEATINS Tocantins,107
+SANEMAT Mato Grosso,108
+SANEPAR Paraná,109
+SANESUL Mato Grosso do Sul,110
+SEMAE Mogi das Cruzes,111
+SEMAE São Leopoldo,112
+SEMASA Santo André,113
+SIMAE Joaçaba/SC,114
+SAAE Ourinhos,115
+SAE Votuporanga,116
+SAMAE Blumenau,118
+SAMAE Brusque,119
+SAMAE São Bento,120
+SEMAE Piracicaba,121
+SANED Diadema,122
+BRK Ambiental Limeira,124
+SAEP Pirassununga,126
+SAMA Mauá,127
+SAAE Alagoinhas,129
+SAAE Itapetininga,134
+SAAE Juazeiro/BA,135
+SAAE Orleans,140
+SAMAE Urussanga,141
+SAMAE Cocal do Sul,142
+SAMAE Grão-Pará,143
+SAMAE São Ludgero,144
+SAMAE Jacinto Machado,146
+SAMAE Santa Rosa do Sul,147
+SAMAE Jaguaruna,148
+SAMAE Campos Novos,149
+SAMAE Nova Trento,151
+SAMAE São Francisco do Sul,152
+SAMAE Rio ...,153
+SIMAE,154
+SAAE Barra Mansa,156
+SAEMA Vinhedo,157
+SAAE Gaspar,158
+SAAE Pomerode,159
+SAAE Porto Feliz,160
+SAAE Cabeceira Grande,161
+SAAE Axixá,164
+SAAE Lucas do Rio Verde,178
+SAAE Planalto da Serra,180
+SAAE Baía da Traição,184
+SAAE Casa Nova,197
+SAAE Catu,199
+SAAE Feira da Mata,205
+SAAE Itajuípe,209
+SAAE Sítio do Mato,222
+SAAE Xique Xique,225
+SAAE Balsas,228
+SAAE Caxias,230
+SAAE Estreito,233
+SAAE Nova Olinda do Maranhão,236
+SAAE Pastos Bons,238
+SAAE Icapuí,252
+SAAE Iguatú,253
+SAAE Campestre do Maranhão,274
+SAAE São João do Soter,277
+SAAE Alvorada D'Oeste,279
+SAAE Votorantim,282
+SAAE Cerquilho,285
+Paranaguá Saneamento,286
+SAAE Bebedouro,292
+SAAE Vilhena,297
+SEMAE São José do Rio Preto,304
+SAAE São Mateus,305
+Prefeitura de Salto/SP (Água e Esgoto),307
+DEMAE Caldas Novas,311
+SAEE Alegre,312
+DAE Américo Brasiliense,313
+SAEE São Lourenço,314
+SAAE Ibitinga,315
+SAE Porto Ferreira,316
+SAAE,318
+CODEN Nova Odessa,319
+Águas do Imperador,320
+Águas de Juturnaíba,322
+SAAE Abadiânia,325
+SAAE Corumbá,326
+SAAE Faina,327
+DAE Carangola,330
+SAAE Rio das Pedras,334
+SAAE Manhuaçu,336
+SAMAE Caxias do Sul,337
+SANEAR Rondonópolis,341
+Prefeitura de Castanheiras,343
+SAAE Piumhi,348
+DAE Patrocínio,349
+SAAE Boa Esperança,352
+SAAE Machado,353
+SAAE Três Pontas,534
+SAAE Tijucas,357
+Serv. Municipal de Água e Esgoto,358
+SAAE Itabirito,361
+SAAE Guanhães,362
+SAAEB Belém,365
+SAAE Oliveira,366
+DAE Jaciara,368
+Prolagos Cabo Frio,370
+SAAE Bocaiúva,372
+SAAE Bandeirantes,374
+SAAE Corguinho,376
+SAAE Jaraguari,377
+DMAES Rochedo,378
+SAAE São Grabriel do Oeste,379
+DMAES Ponte Nova,380
+DAE Paraty,381
+DAE Várzea Grande,382
+SAAE Quatis,384
+SAAE Oratórios,385
+DAE Ilha Solteira,388
+SAAE Caeté,389
+SAERB,390
+Águas do Paraíba,391
+DAMAE São João Del Rei,394
+SAAE Cambuí,399
+SAAE Buritizeiro,400
+DAE Tupaciguara,402
+SAAE Primavera de Rondônia,406
+DAE Paraíso,408
+SAAE Brejinho,411
+SAAE Maxaranguape,412
+SAAE Santa Cruz,415
+SAAE São Gonçalo do Amarante,416
+SAAE Rio Bananal,419
+SAAE Abre Campo,420
+ESAMUR,421
+Consórcio Águas de Mirassol,422
+DAE Guararapes,424
+Prefeitura de Louveira,425
+SAAE Itápolis,426
+SAAE Pirapora,427
+DAE Sertãozinho,428
+SAEC Catanduva,429
+SEMAE Morro Grande,436
+SAAE Jampruca,438
+SAAE Marechal Câncido,440
+SAE Vargem Grande do Sul,443
+CAENF Nova Friburgo,446
+SAAE Pimenta,448
+SAMAE Tangará da Serra,449
+Prefeitura de Nova Olímpia,451
+Prefeitura de Bom Jesus dos Perdões/SP,463
+SANEAR Colatina,467
+SAAE Guapé,469
+SAAE São Miguel dos Campos,470
+SAAE Lambari,473
+SAAE Itambacuri,476
+Águas de Manaus,477
+SAAE Itabira,478
+Águas de Niterói,479
+SAAE Lassance,480
+SAS Barbacena,483
+SAEEC Crato,488
+SAAE Itacoatiara,493
+SAAE Maués,494
+SAAE Urucará,495
+SAAE Parintins,498
+SAAE Presidente Figueiredo,499
+Prefeitura de Gavião Peixoto - Água,500
+SAAE Santa Fé do Sul,504
+DAEV,505
+SAEP Potirendaba,506
+EMDAEP Dracena,508
+DEMAE,513
+SAAE Angra dos Reis,516
+Prefeitura de Bom Princípio,518
+Prefeitura de Denise,520
+DMAEG Guiratinga,522
+SAAE Pedreira,524
+DAE Batatais,525
+Águas de Sorriso,527
+Prefeitura de São José do Rio Pardo,532
+Águas Guariroba,534
+Águas de Arenópolis,543
+SAAE Cocos,544
+SAAE Barro Preto,548
+Águas de Peixoto Azevedo - Grupo Kullinan,554
+SAAE Barcelos,557
+SAAE Boa Vista do Ramos,558
+SAAE São Sebastião do Uatumã,559
+SAAE Santa Isabel do Pará,578
+DAE Tomé-Açu,586
+SAAE Boca da Mata,590
+SAAE Marechal Deodoro,595
+SAAE Porto Real do Colégio,598
+SAAE Cosmorama,606
+SAAE Ibiraçu,607
+SAAE Marilândia,609
+EMDHOSP,612
+Ponte e Lacerda,614
+SAG Guaraçaí,615
+SAAE Gonzaga,618
+Prefeitura de Santa Branca - Água,619
+DAE Guapiaçu,620
+DAE Barra do Bugres,621
+Sanessol,622
+DAE Cosmópolis,626
+Prefeitura de Dom Aquino,627
+Prefeitura de Poxoréu,629
+Prefeitura de Santo Antônio do Leverger,630
+DAE Nossa Senhora do Livramento,631
+DAE Campo Novo dos Parecis,632
+Prefeitura de Pontal do Araguaia,639
+DAE São Pedro do Turvo,641
+Prefeitura de Morro Agudo/SP (Água e Esgoto),642
+Prefeitura de Itapura,643
+Jari Celulose Serviços de Água e Esgoto,644
+CAB Canarana,646
+Prefeitura de Cerqueira César/SP (Água),647
+CAAES Itinga,652
+Prefeitura de Castilho,653
+DAEP,655
+Prefeitura de Pindorama/SP (Água),660
+SAAE Brotas,661
+Prefeitura de Terra Nova do Norte,662
+Águas de Guarantã,664
+Prefeitura de Tabapuã,665
+SAAE Pirajuí,695
+Prefeitura de Itirapina - Água,698
+DAE Guaíra,699
+DAAE Penápolis,704
+Prefeitura de Rancharia/SP (Água),709
+SAE Catalão,710
+SAAEI Ipua,712
+SAE Taiaçuu,720
+SAAE Santa Isabel,730
+SAEMA Sertãozinho,739
+SAAE Pereira Barreto,746
+CAB Colider,766
+SAAE Aparecida,771
+Prefeitura de Luiz Antônio,774
+CORSAN Nova,798
+Alta Floresta,802
+DAE Cedral,812
+SAAE Colina,825
+Prefeitura de Patrocínio Paulista - Água,836
+Prefeitura de Tupi Paulista - Água,841
+SEMASA Itajaí,845
+Prefeitura de Porto Real - Água,846
+SAAE Cruzeiro,883
+SAE Murutinga do Sul,885
+Águas de Itapema,910
+SAAE São Pedro,918
+SAAE Cravinhos,919
+Souza Ind. Adm. de Água,928
+Prefeitura de Conchal,950
+Águas de Joinville,961
+SAAE Caiuá,966
+Município de Navegantes,993
+Porto Administração de Águas e Cond.,1011
+SAAE Mendonça,1017
+Prefeitura de Tabatinga,1025
+SAEAN,1034
+DAE Jardinópolis,1064
+Prefeitura de Palhoça/SC (Saneamento),1098
+CORSAN - PAC - RS,1100
+Águas Comodoro,1103
+Águas de Itú,1105
+Águas das Agulhas Negras,1113
+ESAP,1119
+SAE Novo Hamburgo,1128
+SAAE Dois Córregos,1139
+Cessão Embasa Foz de Jaguaribe,1207
+Águas de Aracoiaba,1217
+Águas Piquete SA,1253
+BRK Ambiental Santa Gertrudes,1263
+Águas de Andradina,1270
+Águas de Castilho SA,1280
+CEDAE,1292
+CEDAE,1293
+BRK Ambiental Uruguaiana,1310
+BRK Ambiental Porto Ferreira,1318
+CAB Cuiabá,1329
+Tubarão Saneamento,1330
+F.AB. Zona Oeste,1333
+Águas de Votorantim,1335
+São Gabriel Saneamento,1337
+SAMAR Araçatuba,1345
+BRK Ambiental Araguaia,1346
+Itapoá Saneamento,1347
+BRK Ambiental Macaé,1349
+Foz Goiás Saneamento,1379
+Águas de Matão,1387
+Águas de São Francisco,1393
+Águas de Paraty,1402
+Águas de Sinop,1422
+Águas de Jahu,1423
+Águas de São Francisco do Sul SPE SA,1426
+Odebrecht Ambiental Maranhão,1429
+BRK Ambiental Sumaré,1436
+Pará de Minas,1442
+Águas de Timon,1443
+SANESALTO Saneamento,1447
+Prefeitura de Martinópolis,1452
+CAEPA Companhia de Água e Esgoto,1456
+Águas de Holambra,1462
+Águas de Penha,1466
+Águas de Camboriú Saneamento SPE Ltda,1473
+EPPO Saneamento,1494
+Águas de Bombinhas,1499
+Prefeitura de Presidente Venceslau,1514
+Companhia Ituana de Saneamento,1520
+SAAE Cafelância,1534
+Águas de Teresina,1535
+Embasa,1550
+Embasa BNDESPar,1551
+Prefeitura de Américo de Campos,1577
+Águe e Esgoto de Videira (Visan),1612
+BRK Ambiental Caçador,1619
+Ouro Preto Serviços,1658
+SANEL Saneamento,1688
+Águas do Rio,1698
+Águas do Rio,1699
+Iguá RJ,1712
+Iguá RJ,1713
+Ambiental Crato,1725
+Saneamento Orlândia,1731
+SAAE Sete Lagoas,2499
+BRK Ambiental Mauá,3847

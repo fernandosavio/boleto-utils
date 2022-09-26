@@ -2,6 +2,7 @@ use std::convert::{TryFrom,From};
 
 use crate::utils::{dv_utils, self};
 use crate::BoletoError;
+use crate::concessionarias::InfoConvenio;
 
 
 pub struct CodBarras([u8; Arrecadacao::COD_BARRAS_LENGTH]);
@@ -25,6 +26,29 @@ impl CodBarras {
         cod_barras.copy_from_slice(input);
 
         Ok(Self(cod_barras))
+    }
+
+    pub fn tipo_valor(&self) -> Result<TipoValor, BoletoError> {
+        TipoValor::try_from(self[2]).map_err(|_| BoletoError::InvalidTipoValor)
+    }
+
+    pub fn segmento(&self) -> Result<Segmento, BoletoError> {
+        Segmento::try_from(self[1]).map_err(|_| BoletoError::InvalidSegmento)
+    }
+
+    pub fn calculate_digito_verificador(&self) -> Result<u8, BoletoError> {
+        // Cria um iterator que itera sobre os caracteres do código de barras
+        // exceto o dígito verificador
+        let iterator_without_dv = self[..3]
+            .iter()
+            .chain(self[4..].iter());
+
+        match self.tipo_valor()? {
+            TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10 => Ok(
+                dv_utils::mod_10(iterator_without_dv)
+            ),
+            _ => Ok(dv_utils::mod_11(iterator_without_dv).unwrap_or(b'0'))
+        }
     }
 }
 
@@ -204,22 +228,10 @@ impl TryFrom<u8> for TipoValor {
     }
 }
 
+#[derive(Debug)]
 pub enum Convenio {
-    Carne([u8; 8]),
-    Outros(u16),
-}
-
-impl std::fmt::Debug for Convenio {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self {
-            Self::Carne(x) => f.debug_tuple("Carne")
-                .field(unsafe { &std::str::from_utf8_unchecked(x) })
-                .finish(),
-            Self::Outros(x) => f.debug_tuple("Outros")
-                .field(x)
-                .finish()
-        }
-    }
+    Carne,  // Ignorando cadastro de carnês por falta de dados
+    Outros(Option<&'static InfoConvenio>),
 }
 
 #[derive(Debug)]
@@ -252,26 +264,23 @@ impl Arrecadacao {
             _ => return Err(BoletoError::InvalidLength),
         };
 
-        let tipo_valor = TipoValor::try_from(cod_barras[2])
-            .map_err(|_| BoletoError::InvalidTipoValor)?;
+        let tipo_valor = cod_barras.tipo_valor()?;
 
-        let digito_verificador = Self::calculate_digito_verificador(&cod_barras, &tipo_valor)?;
+        let digito_verificador = cod_barras.calculate_digito_verificador()?;
 
         if digito_verificador != cod_barras[3] {
             return Err(BoletoError::InvalidDigitoVerificador);
         }
 
-        let segmento: Segmento = Segmento::try_from(cod_barras[1])
-            .map_err(|_| BoletoError::InvalidSegmento)?;
+        let segmento: Segmento = cod_barras.segmento()?;
 
         let convenio = match segmento {
-            Segmento::Carnes => {
-                let mut cnpj = [0_u8; 8];
-                cnpj.copy_from_slice(&cod_barras[15..23]);
-                Convenio::Carne(cnpj)
-            },
+            Segmento::Carnes => Convenio::Carne,
             _ => Convenio::Outros(
-                utils::u8_array_to_u16(&cod_barras[15..19])
+                InfoConvenio::get(
+                    &segmento,
+                    utils::u8_array_to_u16(&cod_barras[15..19])
+                )
             ),
         };
 
@@ -284,21 +293,6 @@ impl Arrecadacao {
             digito_verificador,
             convenio,
         })
-    }
-
-    fn calculate_digito_verificador(barcode: &CodBarras, tipo: &TipoValor) -> Result<u8, BoletoError> {
-        // Cria um iterator que itera sobre os caracteres do código de barras
-        // exceto o dígito verificador
-        let iterator_without_dv = barcode[..3]
-            .iter()
-            .chain(barcode[4..].iter());
-
-        match tipo {
-            TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10 => Ok(
-                dv_utils::mod_10(iterator_without_dv)
-            ),
-            _ => Ok(dv_utils::mod_11(iterator_without_dv).unwrap_or(b'0'))
-        }
     }
 
     fn valor(barcode: &CodBarras, tipo: &TipoValor) -> Option<f64> {

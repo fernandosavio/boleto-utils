@@ -1,0 +1,455 @@
+nome,codigo
+São Paulo/SP,0
+Adolfo/SP,29
+Valinhos/SP,37
+Camaçari/BA,41
+Águas de Prata/SP,60
+Águas de Lindóia/SP,62
+Agudos/SP,69
+Alagoinhas/BA,84
+Altinópolis/SP,127
+Álvares Machado/SP,151
+Alvorada/RS,155
+Americana/SP,174
+Américo Brasiliense/SP,176
+Américo de Campos/SP,177
+Andradina/SP,204
+Angatuba/SP,207
+Anhembi/SP,218
+Apiaí/SP,248
+Aracaju/SE,263
+Araçariguama/SP,264
+Araçatuba/SP,268
+Aramina/SP,292
+Arandu/SP,293
+Araraquara/SP,306
+Araruama/RJ,311
+Arealva/SP,326
+Areiópolis/SP,333
+Artur Nogueira/SP,355
+Arujá/SP,357
+Assis/SP,363
+Atibaia/SP,375
+Auriflama/SP,384
+Avanhandava/SP,392
+Avaré/SP,393
+Bady Bassitt/SP,403
+Bananal/SP,424
+Bariri/SP,447
+Barra Bonita/SP,449
+Barra do Piraí/RJ,465
+Barra do Turvo/SP,468
+Barra Mansa/RJ,471
+Barretos/SP,482
+Barueri/SP,494
+Bastos/SP,495
+Porto Real/RJ,500
+Bauru/SP,502
+Bebedouro/SP,504
+Belém/PA,511
+Belo Horizonte/MG,521
+Bertioga/SP,539
+Betim/MG,545
+Birigui/SP,552
+Blumenau/SC,557
+Boa Esperança do Sul/SP,562
+Boa Vista/RR,567
+Bocaina/SP,575
+Bofete/SP,582
+Boituva/SP,583
+Bom Conselho/PB,584
+Bom Jesus dos Perdões/SP,607
+Borá/SP,634
+Borborema/SP,638
+Borebi/SP,640
+Botucatu/SP,644
+Bragança/PA,651
+Brodowski/SP,692
+Brotas/SP,693
+Brumadinho/MG,695
+Brusque/SC,697
+Buritama/SP,705
+Buritizal/SP,715
+Cabo de Santo Agostinho/PE,728
+Cabo Frio/RJ,729
+Cabreúva/SP,732
+Caçapava/SP,736
+Caçapava do Sul/RS,737
+Cachoeirinha/RS,755
+Cachoeiro de Itapemirim/ES,759
+Caeté/MG,772
+Caiabu/SP,780
+Caieiras/SP,789
+Caiuá/SP,791
+Cajamar/SP,793
+Cajati/SP,796
+Cajuru/SP,804
+Camaçari/BA,816
+Camanducaia/MG,820
+Camaragibe/PE,823
+Cambé/PR,828
+Campinas/SP,849
+Campo Grande/MS,868
+Campo Mourão/PR,873
+Campos do Jordão/SP,882
+Campos dos Goytacazes/RJ,883
+Cândido Mota/SP,911
+Canela/RS,915
+Capão Bonito/SP,936
+Capivari/SP,958
+Caraguatatuba/SP,964
+Carapicuíba/SP,971
+Carazinho/RS,977
+Casa Branca/SP,1023
+Cássia dos Coqueiros/SP,1035
+Catalão/GO,1046
+Caxias do Sul/RS,1066
+Cedral/SP,1069
+Cerqueira César/SP,1082
+Cerquilho/SP,1083
+Macaubal/SP,1112
+Colômbia/SP,1147
+Conchal/SP,1178
+Conselheiro Lafaiete/MG,1194
+Contagem/MG,1199
+Cordeirópolis/SP,1208
+Coronel Fabriciano/MG,1224
+Cosmópolis/SP,1253
+Cravinhos/SP,1266
+Cruzália/SP,1293
+Cruzeiro do Sul/AC,1300
+Cubatão/SP,1303
+Curitiba/PR,1319
+Diadema/SP,1354
+Diamantina/MG,1359
+Divinópolis/MG,1376
+Dobrada/SP,1380
+Dois Córregos/SP,1381
+Dourado/SP,1417
+Dracena/SP,1426
+Dumont/SP,1431
+Duque de Caxias/RJ,1433
+Eldorado/SP,1441
+Embu das Artes/SP,1450
+Embu-Guaçu/SP,1451
+Espírito Santo do Pinhal/SP,1495
+Euclides da Cunha Paulista/SP,1515
+Fartura/SP,1535
+Fernandópolis/SP,1561
+Ferraz de Vasconcelos/SP,1562
+Flores das Cunha/RS,1580
+Florínea/SP,1592
+Fortaleza/CE,1605
+Foz do Iguaçu/PR,1612
+Franco da Rocha/SP,1625
+Garça/SP,1651
+General Salgado/SP,1664
+Governador Valadares/MG,1703
+Gravatá/PE,1715
+Gravataí/RS,1716
+Guaíra/SP,1728
+Guapiara/SP,1740
+Guará/SP,1745
+Guarapuava/PR,1766
+Guararapes/SP,1769
+Guararema/SP,1770
+Guaratinguetá/SP,1772
+Guarujá/SP,1780
+Guarulhos/SP,1782
+Guatapará/SP,1783
+Horizontina/RS,1809
+Hortolândia/SP,1810
+Iacri/SP,1817
+Ibirité/MG,1859
+Ibitinga/SP,1862
+Ibiúna/SP,1868
+Icém/SP,1874
+Igarapava/SP,1883
+Igarassu/PE,1888
+Iguape/SP,1895
+Ilha Solteira/SP,1905
+Indaiatuba/SP,1925
+Ipatinga/SP,1953
+Ipojuca/PE,1968
+Irapuru/SP,1992
+Itaberá/SP,2008
+Itabira/MG,2012
+Itabirito/MG,2014
+Itaboraí/RJ,2015
+Itabuna/BA,2016
+Itaí/SP,2036
+Itajaí/SC,2044
+Itajubá/MG,2048
+Ilha de Itamaracá/PE,2051
+Itanhaém/SP,2066
+Itapecerica da Serra/SP,2080
+Itapeva/SP,2090
+Itapevi/SP,2091
+Itapira/SP,2094
+Itápolis/SP,2103
+Itapuí/SP,2110
+Itaquaquecetuba/SP,2113
+Itatiba/SP,2126
+Itirapina/SP,2142
+Itú/SP,2148
+Itupeva/SP,2155
+Ituverava/SP,2160
+Jaboatão dos Guararapes/PE,2171
+Jaborandi/SP,2173
+Jaboticabal/SP,2177
+Jacareí/SP,2184
+Jaguariúna/SP,2210
+Jales/SP,2214
+Jandira/SP,2222
+Jataí/GO,2251
+Jaú/SP,2256
+José Bonifácio/SP,2299
+Juiz de Fora/MG,2314
+Jundiaí/SP,2314
+Junqueirópolis/SP,2322
+Juquiá/SP,2324
+Lagoa Santa/MG,2378
+Lagoa Vermelha/RS,2380
+Laranjal Paulista/SP,2403
+Lauro de Freitas/BA,2409
+Lavras/MG,2412
+Leme/SP,2418
+Lençóis Paulista/SP,2420
+Leopoldina/MG,2422
+Limeira/SP,2431
+Lindóia/SP,2437
+Linhares/ES,2439
+Luís Antônio/SP,2459
+Macaé/RJ,2473
+Macatuba/SP,2480
+Macedônia/SP,2484
+Maceió/AL,2485
+Magda/SP,2501
+Mairiporã/SP,2506
+Manaus/AM,2524
+Mangaratiba/RJ,2531
+Marília/SP,2592
+Maringá/PR,2594
+Martinópolis/SP,2605
+Matão/SP,2619
+Mateus Leme/SP,2624
+Mauá/SP,2644
+Mendonça/SP,2662
+Miguel Pereira/RJ,2672
+Miguelópolis/SP,2673
+Mira Estrela/SP,2686
+Mirassol/SP,2707
+Mococa/SP,2714
+Mogi das Cruzes/SP,2719
+Mogi Guaçu/SP,2720
+Mogi Mirim/SP,2721
+Mombuca/SP,2726
+Monções/SP,2728
+Mongaguá/SP,2730
+Monte Alegre do Sul/SP,2747
+Monte Alto/SP,2748
+Monte Aprazível/SP,2749
+Monte Mor/SP,2759
+Montes Claros/MG,2769
+Morro Agudo/SP,2782
+Motuca/SP,2796
+Murutinga do Sul/SP,2824
+Não-Me-Toque/RS,2831
+Narandiba/SP,2832
+Nilópolis/RJ,2857
+Niterói/RJ,2863
+Nova Andradina/MS,2882
+Nova Iguaçu/RJ,2911
+Nova Lima/MG,2917
+Nova Odessa/SP,2922
+Nova Prata/RS,2933
+Olímpia/SP,2990
+Olinda/PE,2992
+Osasco/SP,3011
+Osório/RS,3013
+Osvaldo Cruz/SP,3014
+Ouricuri/PE,3018
+Ourinhos/SP,3020
+Ouro Branco/MG,3023
+Ouro Preto/MG,3027
+Pacaembu/SP,3036
+Palestina/SP,3054
+Palmares Paulista/SP,3064
+Palmas/TO,3066
+Palmeira D'Oeste/SP,3070
+Palmital/SP,3084
+Panambi/RS,3090
+Panorama/SP,3093
+Pará de Minas,3098
+PTU???,3100
+Paraguaçu Paulista/SP,3104
+Paraibuna/SP,3108
+Paraíso do Tocantins/TO,3113
+Paranaguá/PR,3121
+Paranapanema/SP,3125
+Parapuã/SP,3133
+Paraty/RJ,3134
+Pardinho/SP,3140
+Passo Fundo/RS,3164
+Patos de Minas/MG,3171
+Patrocínio Paulista/SP,3175
+Paudalho/PE,3180
+Paulínia/SP,3185
+Paulista/PE,3187
+Paulo de Faria/SP,3191
+Pederneiras/SP,3203
+Pedregulho/SP,3223
+Pedreira/SP,3224
+Pedrinhas Paulistas/SP,3227
+Pedro de Toledo/SP,3233
+Penápolis/SP,3248
+Pereira Barreto/SP,3259
+Peruíbe/SP,3266
+Petrópolis/RJ,3273
+Piedade/SP,3282
+Pilhar do Sul/SP,3291
+Pindamonhangaba/SP,3299
+Pindorama/SP,3303
+Piracaia/SP,3324
+Piracicaba/SP,3327
+Piraí/RJ,3329
+Pirassununga/SP,3350
+Poá/SP,3380
+Poços de Caldas/MG,3394
+Poloni/SP,3397
+Pomerode/SC,3400
+Pongra Grossa/PR,3405
+Ponte Nova/MG,3415
+Pontes Gestal/SP,3418
+Populina/SP,3420
+Porangaba/SP,3422
+Porto Alegre/RS,3433
+Porto Ferreira/SP,3446
+Porto Velho/RO,3456
+Potirendaba/SP,3464
+Praia Grande/SP,3475
+Presidente Bernardes/SP,3486
+Presidente Epitácio/SP,3491
+Presidente Prudente/SP,3504
+Presidente Venceslau/SP,3508
+Promissão/SP,3516
+Quadra/SP,3524
+Quatá/SP,3527
+Queiroz/SP,3537
+Rafard/SP,3560
+Rancharia/SP,3561
+Recife/PE,3569
+Regente Feijó/SP,3578
+Registro/SP,3580
+Restinga/SP,3593
+Ribeirão/PE,3621
+Ribeirão Pires/SP,3632
+Ribeirão Preto/SP,3633
+Rifaina/SP,3637
+Rio Bonito/RJ,3644
+Rio Branco/AC,3646
+Rio Claro/SP,3653
+Rio de Janeiro/RJ,3659
+Rio Formoso/PE,3669
+Rio Grande/RS,3671
+Rio Verde/GO,3693
+Sabará/MG,3738
+Sales/SP,3750
+Salvador/BA,3776
+Sandovalina/SP,3784
+Santa Albertina/SP,3787
+Santa Bárbara D'Oeste/SP,3791
+Santa Branca/SP,3795
+Santa Cruz do Rio Parde/SP,3813
+Santa Gertrudes/SP,3824
+Santa Isabel/SP,3833
+Santa Maria da Boa Vista/PE,3854
+Santa Rita do Passa Quatro/SP,3883
+Santa Rosa/RS,3885
+Santa Rosa de Viterbo/SP,3891
+Santana/BA,3908
+Santo Anastácio/SP,3940
+Santo Ângelo/RS,3943
+Santo Antônio de Posse/SP,3954
+Santo Antônio do Arancaguá/SP,3956
+São Bendo do Sapucaí/SP,3990
+São Bernardo do Campo/SP,3995
+São Caetano do Sul/SP,4003
+São Carlos/SP,4006
+São Gonçalo/RJ,4051
+São José do Rio Preto/SP,4154
+São José dos Campos/SP,4158
+São José dos Pinhais/PR,4160
+São Luiz do Paraitinga/SP,4174
+São Manuel/SP,4182
+São Miguel Arcanjo/SP,4190
+São Pedro da Aldeia,4215
+São Roque/SP,4229
+São Sebastião/SP,4231
+São Sebastião do Caí/RS,4238
+São Vicente/SP,4261
+Sapucaia do Sul/RS,4272
+Saquarema,4273
+Sebastianópolis do Sul/SP,4287
+Serra Talhada/PE,4336
+Sertãozinho/SP,4352
+Sete Lagoas/MG,4355
+Silveiras/SP,4368
+Socorre/SP,4393
+Sorocaba/SP,4404
+Sumaré/SP,4414
+Surubim/PE,4417
+Suzano/SP,4418
+Tabapuã/SP,4420
+Tabatinga/SP,4421
+Taboão da Serra/SP,4424
+Taciba/SP,4431
+Taiaçu/SP,4436
+Taquaritinga/SP,4475
+Taquarituba/SP,4477
+Tarabaí/SP,4482
+Tatuí/SP,4489
+Taubaté/SP,4491
+Telêmaco Borba/PR,4502
+Teresina/PI,4514
+Teresópolis/RJ,4516
+Terra Roxa/SP,4525
+Tietê/SP,4532
+Tramandaí/RS,4566
+Tremembé/SP,4568
+Tupã/SP,4607
+Tupi Paulista/SP,4615
+Turiúba/SP,4618
+Ubatuba/SP,4637
+Uberlânda/SP,4639
+Uchoa/SP,4642
+Umuarama/PR,4652
+União Paulista/SP,4659
+Vacaria/SP,4685
+Valentim Gentil/SP,4691
+Valinhos/SP,4692
+Valparaíso/SP,4693
+Vargem Grande do Sul/SP,4699
+Varginha/MG,4701
+Várzea Paulista/SP,4717
+Venâncio Aires/RS,4723
+Veranópolis/RS,4733
+Vespasiano/MG,4739
+Vinhedo/SP,4769
+Viradouro/SP,4770
+Vitória/ES,4784
+Volta Redonda/RJ,4791
+Votorantim/SP,4792
+Votuporanga/SP,4793
+Franca/SP,4797
+Chavantes/SP,4805
+Ilha Comprida/SP,4812
+Iguaba Grande/RJ,4833
+Armação dos Búzios/RJ,4849
+Gavião Peixoto/SP,4856
+Valparaíso de Goiás/GO,4866
+Mesquita/RJ,5375
+São Paulo/SP,5701
+São Paulo/SP (Dívida Ativa),5889
+Santo André/SP,5896
+Batatais/SP,6217

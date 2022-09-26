@@ -2,6 +2,10 @@ mod utils;
 mod cobranca;
 mod arrecadacao;
 mod instituicoes_bancarias;
+mod concessionarias;
+
+use arrecadacao::CodBarras as CodBarrasArr;
+use cobranca::CodBarras as CodBarrasCob;
 
 use crate::cobranca::Cobranca;
 use crate::arrecadacao::Arrecadacao;
@@ -33,6 +37,18 @@ impl Boleto {
             None => Err(BoletoError::InvalidLength),
             Some(b'8') => Ok(Boleto::Arrecadacao(Arrecadacao::new(value)?)),
             _ => Ok(Boleto::Cobranca(Cobranca::new(value)?)),
+        }
+    }
+
+    pub fn calculate_digito_verificador(value: &[u8]) -> Result<u8, BoletoError> {
+        match value.first() {
+            None => Err(BoletoError::InvalidLength),
+            Some(b'8') => {
+                CodBarrasArr::new(value)?.calculate_digito_verificador()
+            },
+            _ => {
+                CodBarrasCob::new(value)?.calculate_digito_verificador()
+            },
         }
     }
 }

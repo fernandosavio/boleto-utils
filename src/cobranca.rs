@@ -25,6 +25,18 @@ impl CodBarras {
 
         Ok(Self(cod_barras))
     }
+
+    pub fn calculate_digito_verificador(&self) -> Result<u8, BoletoError> {
+        // Cria um iterator que itera sobre os caracteres do código de barras
+        // exceto o dígito verificador
+        let iterator_without_dv = self[..4]
+            .iter()
+            .chain(self[5..].iter());
+
+        Ok(
+            dv_utils::mod_11(iterator_without_dv).unwrap_or(b'1')
+        )
+    }
 }
 
 impl From<&LinhaDigitavel> for CodBarras {
@@ -208,7 +220,7 @@ impl Cobranca {
 
         let digito_verificador: u8 = cod_barras[4];
 
-        if digito_verificador != Self::calculate_digito_verificador(&cod_barras)? {
+        if digito_verificador != cod_barras.calculate_digito_verificador()? {
             return Err(BoletoError::InvalidDigitoVerificador);
         }
 
@@ -223,18 +235,6 @@ impl Cobranca {
             data_vencimento: fator_vencimento_to_date(fator_vencimento),
             valor,
         })
-    }
-
-    fn calculate_digito_verificador(barcode: &CodBarras) -> Result<u8, BoletoError> {
-        // Cria um iterator que itera sobre os caracteres do código de barras
-        // exceto o dígito verificador
-        let iterator_without_dv = barcode[..4]
-            .iter()
-            .chain(barcode[5..].iter());
-
-        Ok(
-            dv_utils::mod_11(iterator_without_dv).unwrap_or(b'1')
-        )
     }
 }
 
@@ -407,11 +407,8 @@ mod tests {
         ];
 
         for (barcode, expected) in barcodes.iter() {
-
             assert_eq!(
-                Cobranca::calculate_digito_verificador(
-                    &CodBarras::new(*barcode).unwrap()
-                ).unwrap(),
+                CodBarras::new(*barcode).unwrap().calculate_digito_verificador().unwrap(),
                 *expected,
             );
         }
