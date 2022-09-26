@@ -84,6 +84,12 @@ impl std::fmt::Debug for CodBarras {
     }
 }
 
+impl std::fmt::Display for CodBarras {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(unsafe { &std::str::from_utf8_unchecked(&self.0)})
+    }
+}
+
 impl std::ops::Deref for CodBarras {
     type Target = [u8; Arrecadacao::COD_BARRAS_LENGTH];
 
@@ -167,6 +173,12 @@ impl std::fmt::Debug for LinhaDigitavel {
     }
 }
 
+impl std::fmt::Display for LinhaDigitavel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(unsafe { &std::str::from_utf8_unchecked(&self.0)})
+    }
+}
+
 impl std::ops::Deref for LinhaDigitavel {
     type Target = [u8; Arrecadacao::LINHA_DIGITAVEL_LENGTH];
 
@@ -202,6 +214,23 @@ impl TryFrom<u8> for Segmento {
             b'9' => Ok(Self::ExclusivoDoBanco),
             _ => Err(()),
         }
+    }
+}
+
+impl std::fmt::Display for Segmento {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(
+            match self {
+                Self::Prefeituras => "Prefeituras",
+                Self::Saneamento => "Saneamento",
+                Self::EnergiaEletricaEGas => "Energia elétrica e gás",
+                Self::Telecomunicacoes => "Telecomunicações",
+                Self::OrgaosGovernamentais => "Órgãos governamentais",
+                Self::Carnes => "Carnês",
+                Self::MultasTransito => "Multas de Trânsito",
+                Self::ExclusivoDoBanco => "Uso exclusivo do banco emissor",
+            }
+        )
     }
 }
 

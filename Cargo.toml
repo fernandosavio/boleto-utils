@@ -17,3 +17,4 @@ keywords = ["barcode", "boleto"]
 chrono = "0.4"
 lazy_static = "1.4.0"
 csv = "1.1.6"
+clap = { version = "3.2.22", features = ["derive"] }

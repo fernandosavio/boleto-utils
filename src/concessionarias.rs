@@ -37,7 +37,7 @@ impl InfoConvenio {
     pub fn get(segmento: &Segmento, id: u16) -> Option<&'static InfoConvenio> {
         match segmento {
             Segmento::Prefeituras => PREFEITURAS.get(&id),
-            _ => unimplemented!(),
+            _ => None,
         }
     }
 }
