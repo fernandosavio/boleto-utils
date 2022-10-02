@@ -1,9 +1,9 @@
-use std::convert::{TryFrom,From};
+use std::convert::{From, TryFrom};
+use std::fmt;
 
-use crate::utils::{dv_utils, self};
-use crate::BoletoError;
 use crate::concessionarias::InfoConvenio;
-
+use crate::utils::{self, dv_utils};
+use crate::BoletoError;
 
 pub struct CodBarras([u8; Arrecadacao::COD_BARRAS_LENGTH]);
 
@@ -39,15 +39,13 @@ impl CodBarras {
     pub fn calculate_digito_verificador(&self) -> Result<u8, BoletoError> {
         // Cria um iterator que itera sobre os caracteres do código de barras
         // exceto o dígito verificador
-        let iterator_without_dv = self[..3]
-            .iter()
-            .chain(self[4..].iter());
+        let iterator_without_dv = self[..3].iter().chain(self[4..].iter());
 
         match self.tipo_valor()? {
-            TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10 => Ok(
-                dv_utils::mod_10(iterator_without_dv)
-            ),
-            _ => Ok(dv_utils::mod_11(iterator_without_dv).unwrap_or(b'0'))
+            TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10 => {
+                Ok(dv_utils::mod_10(iterator_without_dv))
+            }
+            _ => Ok(dv_utils::mod_11(iterator_without_dv).unwrap_or(b'0')),
         }
     }
 }
@@ -76,17 +74,17 @@ impl From<&LinhaDigitavel> for CodBarras {
     }
 }
 
-impl std::fmt::Debug for CodBarras {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Debug for CodBarras {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("CodBarras")
-            .field(unsafe { &std::str::from_utf8_unchecked(&self.0)})
+            .field(unsafe { &std::str::from_utf8_unchecked(&self.0) })
             .finish()
     }
 }
 
-impl std::fmt::Display for CodBarras {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(unsafe { &std::str::from_utf8_unchecked(&self.0)})
+impl fmt::Display for CodBarras {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(unsafe { &std::str::from_utf8_unchecked(&self.0) })
     }
 }
 
@@ -165,17 +163,17 @@ impl From<&CodBarras> for LinhaDigitavel {
     }
 }
 
-impl std::fmt::Debug for LinhaDigitavel {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Debug for LinhaDigitavel {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("LinhaDigitavel")
-            .field(unsafe { &std::str::from_utf8_unchecked(&self.0)})
+            .field(unsafe { &std::str::from_utf8_unchecked(&self.0) })
             .finish()
     }
 }
 
-impl std::fmt::Display for LinhaDigitavel {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(unsafe { &std::str::from_utf8_unchecked(&self.0)})
+impl fmt::Display for LinhaDigitavel {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(unsafe { &std::str::from_utf8_unchecked(&self.0) })
     }
 }
 
@@ -217,23 +215,20 @@ impl TryFrom<u8> for Segmento {
     }
 }
 
-impl std::fmt::Display for Segmento {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(
-            match self {
-                Self::Prefeituras => "Prefeituras",
-                Self::Saneamento => "Saneamento",
-                Self::EnergiaEletricaEGas => "Energia elétrica e gás",
-                Self::Telecomunicacoes => "Telecomunicações",
-                Self::OrgaosGovernamentais => "Órgãos governamentais",
-                Self::Carnes => "Carnês",
-                Self::MultasTransito => "Multas de Trânsito",
-                Self::ExclusivoDoBanco => "Uso exclusivo do banco emissor",
-            }
-        )
+impl fmt::Display for Segmento {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::Prefeituras => "Prefeituras",
+            Self::Saneamento => "Saneamento",
+            Self::EnergiaEletricaEGas => "Energia elétrica e gás",
+            Self::Telecomunicacoes => "Telecomunicações",
+            Self::OrgaosGovernamentais => "Órgãos governamentais",
+            Self::Carnes => "Carnês",
+            Self::MultasTransito => "Multas de Trânsito",
+            Self::ExclusivoDoBanco => "Uso exclusivo do banco emissor",
+        })
     }
 }
-
 
 #[derive(Debug)]
 pub enum TipoValor {
@@ -259,7 +254,7 @@ impl TryFrom<u8> for TipoValor {
 
 #[derive(Debug)]
 pub enum Convenio {
-    Carne,  // Ignorando cadastro de carnês por falta de dados
+    Carne, // Ignorando cadastro de carnês por falta de dados
     Outros(Option<&'static InfoConvenio>),
 }
 
@@ -274,6 +269,21 @@ pub struct Arrecadacao {
     pub convenio: Convenio,
 }
 
+impl fmt::Display for Arrecadacao {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "=== Arrecadação ===\n{}\n{}\n{}\n{}",
+            format!("Código de barras: {}", self.cod_barras),
+            format!(" Linha digitável: {}", self.linha_digitavel),
+            format!("        Segmento: {}", self.segmento),
+            format!("           Valor: {}", match self.valor {
+                Some(v) =>format!("{:.2}", v),
+                None => "Sem valor informado".to_owned()
+            }),
+        )
+    }
+}
 
 impl Arrecadacao {
     const COD_BARRAS_LENGTH: usize = 44;
@@ -285,11 +295,11 @@ impl Arrecadacao {
                 let cod_barras = CodBarras::new(value)?;
                 let linha_digitavel = LinhaDigitavel::from(&cod_barras);
                 (cod_barras, linha_digitavel)
-            },
+            }
             Self::LINHA_DIGITAVEL_LENGTH => {
                 let linha_digitavel = LinhaDigitavel::new(value)?;
                 ((&linha_digitavel).into(), linha_digitavel)
-            },
+            }
             _ => return Err(BoletoError::InvalidLength),
         };
 
@@ -305,12 +315,10 @@ impl Arrecadacao {
 
         let convenio = match segmento {
             Segmento::Carnes => Convenio::Carne,
-            _ => Convenio::Outros(
-                InfoConvenio::get(
-                    &segmento,
-                    utils::u8_array_to_u16(&cod_barras[15..19])
-                )
-            ),
+            _ => Convenio::Outros(InfoConvenio::get(
+                &segmento,
+                utils::u8_array_to_u16(&cod_barras[15..19]),
+            )),
         };
 
         Ok(Self {
@@ -328,17 +336,14 @@ impl Arrecadacao {
         match tipo {
             TipoValor::ValorReaisMod10 | TipoValor::ValorReaisMod11 => {
                 let x = unsafe { std::str::from_utf8_unchecked(&barcode[4..15]) };
-                match  x.parse::<f64>().unwrap()
-                {
+                match x.parse::<f64>().unwrap() {
                     x if x.is_normal() => Some(x / 100.00),
                     _ => None,
                 }
-            },
+            }
             _ => None,
         }
     }
 }
 
-mod tests {
-
-}
+mod tests {}

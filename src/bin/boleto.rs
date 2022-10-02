@@ -57,33 +57,7 @@ fn main() {
             let boleto = Boleto::new(&input.cod_barras.as_bytes()).unwrap();
 
             match input.format {
-                Format::Text => {
-                    match boleto {
-                        Boleto::Arrecadacao(dados) => {
-                            println!(
-                                concat!(
-                                    "Código de Barras: {}\n",
-                                    " Linha digitável: {}\n",
-                                    "        Segmento: {}\n",
-                                    "           Valor: {}\n",
-                                    "        Convênio: {:?}\n",
-                                ),
-                                dados.cod_barras,
-                                dados.linha_digitavel,
-                                dados.segmento,
-                                if let Some(v) = dados.valor {
-                                    format!("R$ {:.2}", v)
-                                } else {
-                                    "Sem valor informado".to_string()
-                                },
-                                dados.convenio,
-                            );
-                        },
-                        Boleto::Cobranca(_dados) => {
-
-                        }
-                    }
-                },
+                Format::Text => println!("{boleto}"),
                 _ => println!("Formato não implementado"),
             }
 

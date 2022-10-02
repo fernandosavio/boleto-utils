@@ -31,6 +31,15 @@ pub enum Boleto {
     Cobranca(Cobranca),
 }
 
+impl std::fmt::Display for Boleto {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", match self {
+            Self::Arrecadacao(dados) => format!("{dados}"),
+            Self::Cobranca(dados) => format!("{dados}"),
+        })
+    }
+}
+
 impl Boleto {
     pub fn new(value: &[u8]) -> Result<Self, BoletoError> {
         match value.first() {

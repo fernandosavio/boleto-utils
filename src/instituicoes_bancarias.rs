@@ -2,6 +2,7 @@ extern crate csv;
 
 use std::collections::HashMap;
 use std::fs;
+use std::fmt;
 
 use lazy_static::lazy_static;
 
@@ -29,6 +30,12 @@ lazy_static! {
 pub struct InfoBanco {
     id: u16,
     nome: String,
+}
+
+impl fmt::Display for InfoBanco {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[{:03}] {}", self.id, self.nome)
+    }
 }
 
 impl InfoBanco {

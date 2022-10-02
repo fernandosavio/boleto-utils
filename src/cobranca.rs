@@ -1,7 +1,10 @@
+use std::fmt;
+
+use chrono::NaiveDate;
+
 use crate::utils::{dv_utils, fator_vencimento_to_date, u8_array_to_u16};
 use crate::BoletoError;
 use crate::instituicoes_bancarias::InfoBanco;
-use chrono::NaiveDate;
 
 pub struct CodBarras([u8; Cobranca::COD_BARRAS_LENGTH]);
 
@@ -68,6 +71,12 @@ impl std::fmt::Debug for CodBarras {
         f.debug_tuple("CodBarras")
             .field(unsafe { &std::str::from_utf8_unchecked(&self.0)})
             .finish()
+    }
+}
+
+impl fmt::Display for CodBarras {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(unsafe { &std::str::from_utf8_unchecked(&self.0) })
     }
 }
 
@@ -149,6 +158,12 @@ impl std::fmt::Debug for LinhaDigitavel {
     }
 }
 
+impl fmt::Display for LinhaDigitavel {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(unsafe { &std::str::from_utf8_unchecked(&self.0) })
+    }
+}
+
 impl std::ops::Deref for LinhaDigitavel {
     type Target = [u8; Cobranca::LINHA_DIGITAVEL_LENGTH];
 
@@ -163,6 +178,16 @@ pub enum CodigoMoeda {
     Real,
     Outras,
 }
+
+impl fmt::Display for CodigoMoeda {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", match self {
+            Self::Real => "Real",
+            Self::Outras => "Outras",
+        })
+    }
+}
+
 #[derive(Debug)]
 pub struct Cobranca {
     pub cod_barras: CodBarras,
@@ -174,6 +199,30 @@ pub struct Cobranca {
     pub fator_vencimento: u16,
     pub data_vencimento: Option<NaiveDate>,
     pub valor: Option<f64>,
+}
+
+impl fmt::Display for Cobranca {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "=== Cobrança ===\n{}\n{}\n{}\n{}\n{}\n{}",
+            format!("Código de barras: {}", self.cod_barras),
+            format!(" Linha digitável: {}", self.linha_digitavel),
+            format!("           Banco: {}", match self.info_banco {
+                Some(info) => format!("{info}"),
+                None => format!("[{:3.3}] Não reconhecido", &self.cod_barras)
+            }),
+            format!("           Moeda: {}", self.cod_moeda),
+            format!("           Valor: {}", match self.valor {
+                Some(v) => format!("{v:.2}"),
+                None => "Sem valor".to_owned(),
+            }),
+            format!(" Data Vencimento: {}", match self.data_vencimento {
+                Some(date) => format!("{date}"),
+                None => "Sem vencimento".to_owned(),
+            }),
+        )
+    }
 }
 
 
