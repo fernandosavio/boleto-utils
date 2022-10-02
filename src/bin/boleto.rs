@@ -48,15 +48,15 @@ enum Format {
     Yaml,
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
     match &cli.command {
         Some(Commands::Info(input)) => {
-            let boleto = Boleto::new(input.cod_barras.as_bytes()).unwrap();
+            let boleto = Boleto::new(input.cod_barras.as_bytes())?;
 
             match input.format {
-                Format::Text => println!("{boleto}"),
+                Format::Text => println!("{}", boleto),
                 Format::Json => println!("{}", serde_json::to_string_pretty(&boleto).unwrap()),
                 Format::Yaml => println!("{}", serde_yaml::to_string(&boleto).unwrap()),
             }
@@ -67,4 +67,6 @@ fn main() {
         },
         None => println!("Comando não encontrado, use --help para ajuda."),
     }
+
+    Ok(())
 }

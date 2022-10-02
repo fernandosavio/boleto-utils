@@ -287,14 +287,14 @@ impl InfoBanco {
 
 #[cfg(test)]
 mod tests {
-    use crate::instituicoes_bancarias::BANKS_INFO;
+    use crate::instituicoes_bancarias::{BANKS_INFO, DEFAULT_NAME};
 
     use super::InfoBanco;
 
     #[test]
     fn should_load_and_get_info_bancos() {
         let info = InfoBanco::get_by_id(0);
-        assert!(matches!(info, InfoBanco { id: _, nome: DEFAULT_NAME }));
+        assert_eq!(info.nome, DEFAULT_NAME);
 
         println!("HashMap.len() == {}", BANKS_INFO.len());
 

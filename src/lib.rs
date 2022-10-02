@@ -8,6 +8,8 @@ use serde::Serialize;
 extern crate serde_json;
 extern crate serde_yaml;
 
+use thiserror::Error;
+
 use arrecadacao::CodBarras as CodBarrasArr;
 use cobranca::CodBarras as CodBarrasCob;
 
@@ -15,16 +17,25 @@ use crate::cobranca::Cobranca;
 use crate::arrecadacao::Arrecadacao;
 
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum BoletoError {
+    #[error("Deve conter apenas números.")]
     NumbersOnly,
+    #[error("Tamanho inválido.")]
     InvalidLength,
+    #[error("Código Moeda inválido.")]
     InvalidCodigoMoeda,
+    #[error("Dígito verificador inválido.")]
     InvalidDigitoVerificador,
+    #[error("Código de barras de cobrança inválido.")]
     InvalidCobrancaBarcode,
+    #[error("Fator de vencimento inválido.")]
     InvalidFatorVencimento,
+    #[error("Código de barras de arrecadação inválido.")]
     InvalidArrecadacaoBarcode,
+    #[error("Segmento inválido.")]
     InvalidSegmento,
+    #[error("Tipo de valor inválido.")]
     InvalidTipoValor,
 }
 
