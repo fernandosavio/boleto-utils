@@ -39,14 +39,21 @@ name = "boleto_utils"
 version = "0.1.0"
 dependencies = [
  "chrono",
- "clap",
  "csv",
  "lazy_static",
  "phf",
  "serde",
+ "thiserror",
+]
+
+[[package]]
+name = "boleto_utils_cli"
+version = "0.1.0"
+dependencies = [
+ "boleto_utils",
+ "clap",
  "serde_json",
  "serde_yaml",
- "thiserror",
 ]
 
 [[package]]

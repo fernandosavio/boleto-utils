@@ -5,8 +5,6 @@ mod instituicoes_bancarias;
 mod concessionarias;
 
 use serde::Serialize;
-extern crate serde_json;
-extern crate serde_yaml;
 
 use thiserror::Error;
 
@@ -19,23 +17,23 @@ use crate::arrecadacao::Arrecadacao;
 
 #[derive(Error, Debug)]
 pub enum BoletoError {
-    #[error("Deve conter apenas números.")]
+    #[error("deve conter apenas números")]
     NumbersOnly,
-    #[error("Tamanho inválido.")]
+    #[error("tamanho inválido")]
     InvalidLength,
-    #[error("Código Moeda inválido.")]
+    #[error("código Moeda inválido")]
     InvalidCodigoMoeda,
-    #[error("Dígito verificador inválido.")]
+    #[error("dígito verificador inválido")]
     InvalidDigitoVerificador,
-    #[error("Código de barras de cobrança inválido.")]
+    #[error("código de barras de cobrança inválido")]
     InvalidCobrancaBarcode,
-    #[error("Fator de vencimento inválido.")]
+    #[error("fator de vencimento inválido")]
     InvalidFatorVencimento,
-    #[error("Código de barras de arrecadação inválido.")]
+    #[error("código de barras de arrecadação inválido")]
     InvalidArrecadacaoBarcode,
-    #[error("Segmento inválido.")]
+    #[error("segmento inválido")]
     InvalidSegmento,
-    #[error("Tipo de valor inválido.")]
+    #[error("tipo de valor inválido")]
     InvalidTipoValor,
 }
 

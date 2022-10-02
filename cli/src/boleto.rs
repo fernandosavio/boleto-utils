@@ -53,16 +53,28 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match &cli.command {
         Some(Commands::Info(input)) => {
-            let boleto = Boleto::new(input.cod_barras.as_bytes())?;
+            let boleto = match Boleto::new(input.cod_barras.as_bytes()) {
+                Ok(boleto) => boleto,
+                Err(e) => {
+                    eprintln!("Erro: {}", e);
+                    std::process::exit(65);
+                }
+            };
 
             match input.format {
                 Format::Text => println!("{}", boleto),
-                Format::Json => println!("{}", serde_json::to_string_pretty(&boleto).unwrap()),
-                Format::Yaml => println!("{}", serde_yaml::to_string(&boleto).unwrap()),
+                Format::Json => println!("{}", serde_json::to_string_pretty(&boleto)?),
+                Format::Yaml => println!("{}", serde_yaml::to_string(&boleto)?),
             }
         }
         Some(Commands::DigitoVerificador(input )) => {
-            let boleto = Boleto::new(input.cod_barras.as_bytes()).unwrap();
+            let boleto = match Boleto::new(input.cod_barras.as_bytes()) {
+                Ok(boleto) => boleto,
+                Err(e) => {
+                    eprintln!("Erro: {}", e);
+                    std::process::exit(65);
+                }
+            };
             println!("digito-verificador - cod_barras: {:?}", boleto);
         },
         None => println!("Comando não encontrado, use --help para ajuda."),
