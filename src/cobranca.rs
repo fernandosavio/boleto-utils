@@ -1,6 +1,7 @@
 use std::fmt;
 
 use chrono::NaiveDate;
+use serde::Serialize;
 
 use crate::utils::{dv_utils, fator_vencimento_to_date, u8_array_to_u16};
 use crate::BoletoError;
@@ -27,6 +28,10 @@ impl CodBarras {
         cod_barras.copy_from_slice(input);
 
         Ok(Self(cod_barras))
+    }
+
+    pub fn as_str(&self) -> &str {
+        unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
 
     pub fn calculate_digito_verificador(&self) -> Result<u8, BoletoError> {
@@ -76,7 +81,7 @@ impl std::fmt::Debug for CodBarras {
 
 impl fmt::Display for CodBarras {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(unsafe { &std::str::from_utf8_unchecked(&self.0) })
+        f.write_str(self.as_str())
     }
 }
 
@@ -85,6 +90,14 @@ impl std::ops::Deref for CodBarras {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl Serialize for CodBarras {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer {
+        serializer.serialize_str(self.as_str())
     }
 }
 
@@ -109,6 +122,10 @@ impl LinhaDigitavel {
         linha_digitavel.copy_from_slice(input);
 
         Ok(Self(linha_digitavel))
+    }
+
+    pub fn as_str(&self) -> &str {
+        unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
 }
 
@@ -160,7 +177,7 @@ impl std::fmt::Debug for LinhaDigitavel {
 
 impl fmt::Display for LinhaDigitavel {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(unsafe { &std::str::from_utf8_unchecked(&self.0) })
+        f.write_str(self.as_str())
     }
 }
 
@@ -172,8 +189,16 @@ impl std::ops::Deref for LinhaDigitavel {
     }
 }
 
+impl Serialize for LinhaDigitavel {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer {
+        serializer.serialize_str(self.as_str())
+    }
+}
 
-#[derive(Debug)]
+
+#[derive(Debug, Serialize)]
 pub enum CodigoMoeda {
     Real,
     Outras,
@@ -188,14 +213,18 @@ impl fmt::Display for CodigoMoeda {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
+#[serde(rename = "cobranca")]
 pub struct Cobranca {
     pub cod_barras: CodBarras,
     pub linha_digitavel: LinhaDigitavel,
+    #[serde(skip)]
     pub cod_banco: u16,
     pub info_banco: InfoBanco,
     pub cod_moeda: CodigoMoeda,
+    #[serde(skip)]
     pub digito_verificador: u8,
+    #[serde(skip)]
     pub fator_vencimento: u16,
     pub data_vencimento: Option<NaiveDate>,
     pub valor: Option<f64>,

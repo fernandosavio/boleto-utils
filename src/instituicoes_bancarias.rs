@@ -3,6 +3,7 @@ extern crate csv;
 use std::fmt;
 
 use phf::phf_map;
+use serde::Serialize;
 
 
 static BANKS_INFO: phf::Map<u16, &'static str> = phf_map! {
@@ -263,8 +264,7 @@ static BANKS_INFO: phf::Map<u16, &'static str> = phf_map! {
 
 static DEFAULT_NAME: &str = "Banco não encontrado";
 
-#[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct InfoBanco {
     id: u16,
     nome: &'static str,

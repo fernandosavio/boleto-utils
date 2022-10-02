@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::fs;
 
 use lazy_static::lazy_static;
+use serde::Serialize;
 
 use crate::arrecadacao::Segmento;
 
@@ -27,7 +28,7 @@ lazy_static! {
     };
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct InfoConvenio {
     pub id: u16,
     pub nome: String,

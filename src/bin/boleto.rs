@@ -46,7 +46,6 @@ enum Format {
     Text,
     Json,
     Yaml,
-    Toml,
 }
 
 fn main() {
@@ -58,7 +57,8 @@ fn main() {
 
             match input.format {
                 Format::Text => println!("{boleto}"),
-                _ => println!("Formato não implementado"),
+                Format::Json => println!("{}", serde_json::to_string_pretty(&boleto).unwrap()),
+                Format::Yaml => println!("{}", serde_yaml::to_string(&boleto).unwrap()),
             }
         }
         Some(Commands::DigitoVerificador(input )) => {

@@ -4,6 +4,10 @@ mod arrecadacao;
 mod instituicoes_bancarias;
 mod concessionarias;
 
+use serde::Serialize;
+extern crate serde_json;
+extern crate serde_yaml;
+
 use arrecadacao::CodBarras as CodBarrasArr;
 use cobranca::CodBarras as CodBarrasCob;
 
@@ -25,9 +29,12 @@ pub enum BoletoError {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
+#[serde(tag = "tipo", content = "dados")]
 pub enum Boleto {
+    #[serde(rename = "arrecadacao")]
     Arrecadacao(Arrecadacao),
+    #[serde(rename = "cobranca")]
     Cobranca(Cobranca),
 }
 

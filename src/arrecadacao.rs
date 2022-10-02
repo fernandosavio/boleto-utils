@@ -1,6 +1,8 @@
 use std::convert::{From, TryFrom};
 use std::fmt;
 
+use serde::Serialize;
+
 use crate::concessionarias::InfoConvenio;
 use crate::utils::{self, dv_utils};
 use crate::BoletoError;
@@ -26,6 +28,10 @@ impl CodBarras {
         cod_barras.copy_from_slice(input);
 
         Ok(Self(cod_barras))
+    }
+
+    pub fn as_str(&self) -> &str {
+        unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
 
     pub fn tipo_valor(&self) -> Result<TipoValor, BoletoError> {
@@ -77,14 +83,14 @@ impl From<&LinhaDigitavel> for CodBarras {
 impl fmt::Debug for CodBarras {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("CodBarras")
-            .field(unsafe { &std::str::from_utf8_unchecked(&self.0) })
+            .field(&self.as_str())
             .finish()
     }
 }
 
 impl fmt::Display for CodBarras {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(unsafe { &std::str::from_utf8_unchecked(&self.0) })
+        f.write_str(self.as_str())
     }
 }
 
@@ -93,6 +99,14 @@ impl std::ops::Deref for CodBarras {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl Serialize for CodBarras {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer {
+        serializer.serialize_str(self.as_str())
     }
 }
 
@@ -117,6 +131,10 @@ impl LinhaDigitavel {
         linha_digitavel.copy_from_slice(input);
 
         Ok(Self(linha_digitavel))
+    }
+
+    pub fn as_str(&self) -> &str {
+        unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
 }
 
@@ -166,14 +184,14 @@ impl From<&CodBarras> for LinhaDigitavel {
 impl fmt::Debug for LinhaDigitavel {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_tuple("LinhaDigitavel")
-            .field(unsafe { &std::str::from_utf8_unchecked(&self.0) })
+            .field(&self.as_str())
             .finish()
     }
 }
 
 impl fmt::Display for LinhaDigitavel {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(unsafe { &std::str::from_utf8_unchecked(&self.0) })
+        f.write_str(self.as_str())
     }
 }
 
@@ -185,7 +203,15 @@ impl std::ops::Deref for LinhaDigitavel {
     }
 }
 
-#[derive(Debug)]
+impl Serialize for LinhaDigitavel {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
+#[derive(Debug, Serialize)]
 pub enum Segmento {
     Prefeituras,
     Saneamento,
@@ -230,7 +256,7 @@ impl fmt::Display for Segmento {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum TipoValor {
     ValorReaisMod10,
     QtdeMoedaMod10,
@@ -252,18 +278,19 @@ impl TryFrom<u8> for TipoValor {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum Convenio {
     Carne, // Ignorando cadastro de carnês por falta de dados
     Outros(Option<&'static InfoConvenio>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Arrecadacao {
     pub cod_barras: CodBarras,
     pub linha_digitavel: LinhaDigitavel,
     pub segmento: Segmento,
     pub tipo_valor: TipoValor,
+    #[serde(skip)]
     pub digito_verificador: u8,
     pub valor: Option<f64>,
     pub convenio: Convenio,
