@@ -273,14 +273,20 @@ impl fmt::Display for Arrecadacao {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "=== Arrecadação ===\n{}\n{}\n{}\n{}",
-            format!("Código de barras: {}", self.cod_barras),
-            format!(" Linha digitável: {}", self.linha_digitavel),
-            format!("        Segmento: {}", self.segmento),
-            format!("           Valor: {}", match self.valor {
+            concat!(
+                "            Tipo: Arrecadação\n",
+                "Código de barras: {}\n",
+                " Linha digitável: {}\n",
+                "        Segmento: {}\n",
+                "           Valor: {}",
+            ),
+            self.cod_barras,
+            self.linha_digitavel,
+            self.segmento,
+            match self.valor {
                 Some(v) =>format!("{:.2}", v),
                 None => "Sem valor informado".to_owned()
-            }),
+            },
         )
     }
 }

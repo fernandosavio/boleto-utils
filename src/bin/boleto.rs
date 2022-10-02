@@ -18,9 +18,9 @@ enum Commands {
     /// Analisa o código de barra retornando os dados extraídos.
     #[clap(
         arg_required_else_help = true,
-        visible_alias = "p",
+        visible_alias = "i",
     )]
-    Parse(BarcodeInput),
+    Info(BarcodeInput),
     /// Calcula o dígito verificador de um código de barras validando
     /// apenas o mínimo de dados necessário para realizar o cálculo.
     #[clap(
@@ -53,19 +53,18 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Some(Commands::Parse(input)) => {
-            let boleto = Boleto::new(&input.cod_barras.as_bytes()).unwrap();
+        Some(Commands::Info(input)) => {
+            let boleto = Boleto::new(input.cod_barras.as_bytes()).unwrap();
 
             match input.format {
                 Format::Text => println!("{boleto}"),
                 _ => println!("Formato não implementado"),
             }
-
         }
         Some(Commands::DigitoVerificador(input )) => {
-            let boleto = Boleto::new(&input.cod_barras.as_bytes()).unwrap();
+            let boleto = Boleto::new(input.cod_barras.as_bytes()).unwrap();
             println!("digito-verificador - cod_barras: {:?}", boleto);
         },
-        None => println!("Fudeu..."),
+        None => println!("Comando não encontrado, use --help para ajuda."),
     }
 }

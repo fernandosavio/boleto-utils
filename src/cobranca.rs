@@ -193,7 +193,7 @@ pub struct Cobranca {
     pub cod_barras: CodBarras,
     pub linha_digitavel: LinhaDigitavel,
     pub cod_banco: u16,
-    pub info_banco: Option<&'static InfoBanco>,
+    pub info_banco: InfoBanco,
     pub cod_moeda: CodigoMoeda,
     pub digito_verificador: u8,
     pub fator_vencimento: u16,
@@ -205,22 +205,27 @@ impl fmt::Display for Cobranca {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "=== Cobrança ===\n{}\n{}\n{}\n{}\n{}\n{}",
-            format!("Código de barras: {}", self.cod_barras),
-            format!(" Linha digitável: {}", self.linha_digitavel),
-            format!("           Banco: {}", match self.info_banco {
-                Some(info) => format!("{info}"),
-                None => format!("[{:3.3}] Não reconhecido", &self.cod_barras)
-            }),
-            format!("           Moeda: {}", self.cod_moeda),
-            format!("           Valor: {}", match self.valor {
+            concat!(
+                "            Tipo: Cobrança\n",
+                "Código de barras: {}\n",
+                " Linha digitável: {}\n",
+                "           Banco: {}\n",
+                "           Moeda: {}\n",
+                "           Valor: {}\n",
+                " Data Vencimento: {}"
+            ),
+            self.cod_barras,
+            self.linha_digitavel,
+            self.info_banco,
+            self.cod_moeda,
+            match self.valor {
                 Some(v) => format!("{v:.2}"),
                 None => "Sem valor".to_owned(),
-            }),
-            format!(" Data Vencimento: {}", match self.data_vencimento {
+            },
+            match self.data_vencimento {
                 Some(date) => format!("{date}"),
                 None => "Sem vencimento".to_owned(),
-            }),
+            },
         )
     }
 }
