@@ -42,7 +42,7 @@ impl CodBarras {
             .chain(self[5..].iter());
 
         Ok(
-            dv_utils::mod_11(iterator_without_dv).unwrap_or(b'1')
+            dv_utils::mod_11(iterator_without_dv).unwrap_or(b'1') - b'0'
         )
     }
 }
@@ -301,11 +301,14 @@ impl Cobranca {
             }
         };
 
-        let digito_verificador: u8 = cod_barras[4];
+        let digito_verificador: u8 = {
+            let dv = cod_barras[4];
+            if dv != cod_barras.calculate_digito_verificador()? {
+                return Err(BoletoError::InvalidDigitoVerificador);
+            }
+            dv - b'0'
+        };
 
-        if digito_verificador != cod_barras.calculate_digito_verificador()? {
-            return Err(BoletoError::InvalidDigitoVerificador);
-        }
 
         Ok(Self {
             cod_barras,

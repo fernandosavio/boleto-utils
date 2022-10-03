@@ -47,12 +47,12 @@ impl CodBarras {
         // exceto o dígito verificador
         let iterator_without_dv = self[..3].iter().chain(self[4..].iter());
 
-        match self.tipo_valor()? {
+        Ok(match self.tipo_valor()? {
             TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10 => {
-                Ok(dv_utils::mod_10(iterator_without_dv))
+                dv_utils::mod_10(iterator_without_dv)
             }
-            _ => Ok(dv_utils::mod_11(iterator_without_dv).unwrap_or(b'0')),
-        }
+            _ => dv_utils::mod_11(iterator_without_dv).unwrap_or(b'0'),
+        } - b'0')
     }
 }
 
@@ -338,11 +338,13 @@ impl Arrecadacao {
 
         let tipo_valor = cod_barras.tipo_valor()?;
 
-        let digito_verificador = cod_barras.calculate_digito_verificador()?;
-
-        if digito_verificador != cod_barras[3] {
-            return Err(BoletoError::InvalidDigitoVerificador);
-        }
+        let digito_verificador = {
+            let dv = cod_barras.calculate_digito_verificador()?;
+            if dv != cod_barras[3] {
+                return Err(BoletoError::InvalidDigitoVerificador);
+            }
+            dv - b'0'
+        };
 
         let segmento: Segmento = cod_barras.segmento()?;
 

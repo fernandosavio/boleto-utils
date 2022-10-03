@@ -1,3 +1,4 @@
+use anyhow::Result;
 use boleto_utils::Boleto;
 use clap::{Args, Parser, Subcommand, ValueEnum};
 
@@ -48,18 +49,12 @@ enum Format {
     Yaml,
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
         Some(Commands::Info(input)) => {
-            let boleto = match Boleto::new(input.cod_barras.as_bytes()) {
-                Ok(boleto) => boleto,
-                Err(e) => {
-                    eprintln!("Erro: {}", e);
-                    std::process::exit(65);
-                }
-            };
+            let boleto = Boleto::new(input.cod_barras.as_bytes())?;
 
             match input.format {
                 Format::Text => println!("{}", boleto),
@@ -68,14 +63,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
         Some(Commands::DigitoVerificador(input )) => {
-            let boleto = match Boleto::new(input.cod_barras.as_bytes()) {
-                Ok(boleto) => boleto,
-                Err(e) => {
-                    eprintln!("Erro: {}", e);
-                    std::process::exit(65);
-                }
-            };
-            println!("digito-verificador - cod_barras: {:?}", boleto);
+            let dv = Boleto::calculate_digito_verificador(input.cod_barras.as_bytes())?;
+            println!("digito-verificador - cod_barras: {:?}", dv);
         },
         None => println!("Comando não encontrado, use --help para ajuda."),
     }
