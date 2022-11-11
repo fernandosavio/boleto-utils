@@ -302,13 +302,14 @@ impl Cobranca {
         };
 
         let digito_verificador: u8 = {
-            let dv = cod_barras[4];
-            if dv != cod_barras.calculate_digito_verificador()? {
+            let dv = cod_barras.calculate_digito_verificador()?;
+
+            if dv != cod_barras[4] - b'0' {
                 return Err(BoletoError::InvalidDigitoVerificador);
             }
-            dv - b'0'
-        };
 
+            dv
+        };
 
         Ok(Self {
             cod_barras,
@@ -328,9 +329,7 @@ impl Cobranca {
 mod tests {
     use chrono::NaiveDate;
 
-    use crate::cobranca::LinhaDigitavel;
-
-    use super::{Cobranca, CodigoMoeda, CodBarras};
+    use super::{Cobranca, CodigoMoeda, CodBarras, LinhaDigitavel};
 
     #[test]
     fn get_cod_banco_correctly() {
@@ -481,15 +480,15 @@ mod tests {
     #[test]
     fn validate_digito_verificador_correctly() {
         let barcodes = [
-            (b"11191444455555555556666666666666666666666666", b'1'),
-            (b"10499898100000214032006561000100040099726390", b'9'),
-            (b"75696903800002500001434301033723400014933001", b'6'),
-            (b"00191667900002434790000002656973019362470618", b'1'),
-            (b"00195586200000773520000002464206011816073018", b'5'),
-            (b"75592896700003787000003389850761252543475984", b'2'),
-            (b"23791672000003249052028269705944177105205220", b'1'),
-            (b"23791672000003097902028060007024617500249000", b'1'),
-            (b"11191100255555555556666666666666666666666666", b'1'),
+            (b"11191444455555555556666666666666666666666666", 1_u8),
+            (b"10499898100000214032006561000100040099726390", 9_u8),
+            (b"75696903800002500001434301033723400014933001", 6_u8),
+            (b"00191667900002434790000002656973019362470618", 1_u8),
+            (b"00195586200000773520000002464206011816073018", 5_u8),
+            (b"75592896700003787000003389850761252543475984", 2_u8),
+            (b"23791672000003249052028269705944177105205220", 1_u8),
+            (b"23791672000003097902028060007024617500249000", 1_u8),
+            (b"11191100255555555556666666666666666666666666", 1_u8),
         ];
 
         for (barcode, expected) in barcodes.iter() {

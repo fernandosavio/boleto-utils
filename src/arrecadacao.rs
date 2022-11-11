@@ -340,10 +340,11 @@ impl Arrecadacao {
 
         let digito_verificador = {
             let dv = cod_barras.calculate_digito_verificador()?;
-            if dv != cod_barras[3] {
+
+            if dv != cod_barras[3] - b'0' {
                 return Err(BoletoError::InvalidDigitoVerificador);
             }
-            dv - b'0'
+            dv
         };
 
         let segmento: Segmento = cod_barras.segmento()?;
@@ -381,4 +382,25 @@ impl Arrecadacao {
     }
 }
 
-mod tests {}
+
+#[cfg(test)]
+mod tests {
+    use super::CodBarras;
+
+    #[test]
+    fn validate_digito_verificador_correctly() {
+        let barcodes = [
+            (b"83800000000570100310200140444030700008190320", 0_u8),
+            (b"83680000002158200060000010120204236635162731", 8_u8),
+            (b"84640000000959900820899988923054118633769199", 4_u8),
+            (b"83650000000520801380013194136151108052494658", 5_u8),
+        ];
+
+        for (barcode, expected) in barcodes.iter() {
+            assert_eq!(
+                CodBarras::new(*barcode).unwrap().calculate_digito_verificador().unwrap(),
+                *expected,
+            );
+        }
+    }
+}
