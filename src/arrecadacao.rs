@@ -345,8 +345,6 @@ pub struct Arrecadacao {
     pub tipo_valor: TipoValor,
     #[serde(skip)]
     pub digito_verificador: u8,
-    #[serde(skip)]
-    pub digitos_verificadores_campos: (u8, u8, u8, u8),
     pub valor: Option<f64>,
     pub convenio: Convenio,
 }
@@ -412,7 +410,7 @@ impl Arrecadacao {
             dv
         };
 
-        let digitos_verificadores_campos = {
+        {
             let correct_dvs = linha_digitavel.calculate_dvs()?;
 
             if linha_digitavel[11] != correct_dvs.0
@@ -422,8 +420,6 @@ impl Arrecadacao {
             {
                 return Err(BoletoError::InvalidDigitoVerificador);
             }
-
-            correct_dvs
         };
 
         Ok(Self {
@@ -433,7 +429,6 @@ impl Arrecadacao {
             segmento,
             tipo_valor,
             digito_verificador,
-            digitos_verificadores_campos,
             convenio,
         })
     }
@@ -476,7 +471,7 @@ mod tests {
         assert!(matches!(Arrecadacao::new(b"856355555553555566667773777777777775777777777775").unwrap().segmento, Segmento::OrgaosGovernamentais));
         assert!(matches!(Arrecadacao::new(b"866255555553555566667773777777777775777777777775").unwrap().segmento, Segmento::Carnes));
         assert!(matches!(Arrecadacao::new(b"876155555553555566667773777777777775777777777775").unwrap().segmento, Segmento::MultasTransito));
-        assert!(matches!(Arrecadacao::new(b"886055555559555566667778777777777778777777777779"), Err(BoletoError::InvalidSegmento)));
+        assert!(matches!(Arrecadacao::new(b"886055555553555566667773777777777775777777777775"), Err(BoletoError::InvalidSegmento)));
         assert!(matches!(Arrecadacao::new(b"896955555553555566667773777777777775777777777775").unwrap().segmento, Segmento::ExclusivoDoBanco));
     }
 
@@ -492,22 +487,60 @@ mod tests {
         assert!(matches!(Arrecadacao::new(b"86805555555555566667777777777777777777777777").unwrap().tipo_valor, TipoValor::ValorReaisMod11));
         assert!(matches!(Arrecadacao::new(b"86995555555555566667777777777777777777777777").unwrap().tipo_valor, TipoValor::QtdeMoedaMod11));
 
-        assert!(matches!(Arrecadacao::new(b"861055555553555566667773777777777775777777777775").unwrap().segmento, Segmento::Prefeituras));
-        assert!(matches!(Arrecadacao::new(b"862055555553555566667773777777777775777777777775").unwrap().segmento, Segmento::Saneamento));
-        assert!(matches!(Arrecadacao::new(b"863055555553555566667773777777777775777777777775").unwrap().segmento, Segmento::EnergiaEletricaEGas));
-        assert!(matches!(Arrecadacao::new(b"864055555553555566667773777777777775777777777775").unwrap().segmento, Segmento::Telecomunicacoes));
-        assert!(matches!(Arrecadacao::new(b"865055555553555566667773777777777775777777777775").unwrap().segmento, Segmento::OrgaosGovernamentais));
-        assert!(matches!(Arrecadacao::new(b"866055555553555566667773777777777775777777777775").unwrap().segmento, Segmento::Carnes));
-        assert!(matches!(Arrecadacao::new(b"867055555553555566667773777777777775777777777775").unwrap().segmento, Segmento::MultasTransito));
-        assert!(matches!(Arrecadacao::new(b"868055555559555566667778777777777778777777777779"), Err(BoletoError::InvalidSegmento)));
-        assert!(matches!(Arrecadacao::new(b"869055555553555566667773777777777775777777777775").unwrap().segmento, Segmento::ExclusivoDoBanco));
+        assert!(matches!(Arrecadacao::new(b"861055555553555566667773777777777775777777777775"), Err(BoletoError::InvalidTipoValor)));
+        assert!(matches!(Arrecadacao::new(b"862055555553555566667773777777777775777777777775"), Err(BoletoError::InvalidTipoValor)));
+        assert!(matches!(Arrecadacao::new(b"863055555553555566667773777777777775777777777775"), Err(BoletoError::InvalidTipoValor)));
+        assert!(matches!(Arrecadacao::new(b"864055555553555566667773777777777775777777777775"), Err(BoletoError::InvalidTipoValor)));
+        assert!(matches!(Arrecadacao::new(b"865055555553555566667773777777777775777777777775"), Err(BoletoError::InvalidTipoValor)));
+        assert!(matches!(Arrecadacao::new(b"866255555553555566667773777777777775777777777775").unwrap().tipo_valor, TipoValor::ValorReaisMod10));
+        assert!(matches!(Arrecadacao::new(b"867055555553555566667773777777777775777777777775").unwrap().tipo_valor, TipoValor::QtdeMoedaMod10));
+        assert!(matches!(Arrecadacao::new(b"868055555551555566667770777777777773777777777773").unwrap().tipo_valor, TipoValor::ValorReaisMod11));
+        assert!(matches!(Arrecadacao::new(b"869955555556555566667770777777777773777777777773").unwrap().tipo_valor, TipoValor::QtdeMoedaMod11));
     }
 
     #[test]
-    fn get_valor_correctly() {}
+    fn get_valor_correctly() {
+        assert!(matches!(Arrecadacao::new(b"86670000000000066667777777777777777777777777").unwrap().valor, None));
+
+        let cases = [
+            (b"86625555555555566667777777777777777777777777", 5_555_555_555_u64),
+            (b"86689999999999966667777777777777777777777777", 99_999_999_999_u64),
+            (b"86651000000000166667777777777777777777777777", 10_000_000_001_u64),
+            (b"86660000000000166667777777777777777777777777", 1_u64),
+            (b"86660000000010066667777777777777777777777777", 100_u64),
+            (b"86691234567890166667777777777777777777777777", 12_345_678_901_u64),
+        ];
+
+        for (barcode, _expected) in cases.iter() {
+            let valor_float = Arrecadacao::new(*barcode).unwrap().valor.unwrap();
+            let valor: u64 = (valor_float * 100.0).round() as u64;
+
+            assert!(matches!(valor, _expected));
+        }
+    }
 
     #[test]
-    fn get_convenio_correctly() {}
+    fn get_convenio_correctly() {
+        assert!(matches!(Arrecadacao::new(b"81675555555555566667777777777777777777777777").unwrap().convenio, Convenio::Outros(_)));
+        assert!(matches!(Arrecadacao::new(b"82665555555555566667777777777777777777777777").unwrap().convenio, Convenio::Outros(_)));
+        assert!(matches!(Arrecadacao::new(b"83655555555555566667777777777777777777777777").unwrap().convenio, Convenio::Outros(_)));
+        assert!(matches!(Arrecadacao::new(b"84645555555555566667777777777777777777777777").unwrap().convenio, Convenio::Outros(_)));
+        assert!(matches!(Arrecadacao::new(b"85635555555555566667777777777777777777777777").unwrap().convenio, Convenio::Outros(_)));
+        assert!(matches!(Arrecadacao::new(b"86625555555555566667777777777777777777777777").unwrap().convenio, Convenio::Carne));
+        assert!(matches!(Arrecadacao::new(b"87615555555555566667777777777777777777777777").unwrap().convenio, Convenio::Outros(_)));
+        assert!(matches!(Arrecadacao::new(b"88605555555555566667777777777777777777777777"), Err(BoletoError::InvalidSegmento)));
+        assert!(matches!(Arrecadacao::new(b"89695555555555566667777777777777777777777777").unwrap().convenio, Convenio::Outros(_)));
+
+        assert!(matches!(Arrecadacao::new(b"816755555553555566667773777777777775777777777775").unwrap().convenio, Convenio::Outros(_)));
+        assert!(matches!(Arrecadacao::new(b"826655555553555566667773777777777775777777777775").unwrap().convenio, Convenio::Outros(_)));
+        assert!(matches!(Arrecadacao::new(b"836555555553555566667773777777777775777777777775").unwrap().convenio, Convenio::Outros(_)));
+        assert!(matches!(Arrecadacao::new(b"846455555553555566667773777777777775777777777775").unwrap().convenio, Convenio::Outros(_)));
+        assert!(matches!(Arrecadacao::new(b"856355555553555566667773777777777775777777777775").unwrap().convenio, Convenio::Outros(_)));
+        assert!(matches!(Arrecadacao::new(b"866255555553555566667773777777777775777777777775").unwrap().convenio, Convenio::Carne));
+        assert!(matches!(Arrecadacao::new(b"876155555553555566667773777777777775777777777775").unwrap().convenio, Convenio::Outros(_)));
+        assert!(matches!(Arrecadacao::new(b"886055555553555566667773777777777775777777777775"), Err(BoletoError::InvalidSegmento)));
+        assert!(matches!(Arrecadacao::new(b"896955555553555566667773777777777775777777777775").unwrap().convenio, Convenio::Outros(_)));
+    }
 
     #[test]
     fn validate_digito_verificador_correctly() {
@@ -527,8 +560,46 @@ mod tests {
     }
 
     #[test]
-    fn validate_converting_barcode_to_linha_digitavel() {}
+    fn validate_converting_barcode_to_linha_digitavel() {
+        let barcodes = [
+            (b"81675555555555566667777777777777777777777777", b"816755555553555566667773777777777775777777777775"),
+            (b"82665555555555566667777777777777777777777777", b"826655555553555566667773777777777775777777777775"),
+            (b"83655555555555566667777777777777777777777777", b"836555555553555566667773777777777775777777777775"),
+            (b"84645555555555566667777777777777777777777777", b"846455555553555566667773777777777775777777777775"),
+            (b"85635555555555566667777777777777777777777777", b"856355555553555566667773777777777775777777777775"),
+            (b"86625555555555566667777777777777777777777777", b"866255555553555566667773777777777775777777777775"),
+            (b"87615555555555566667777777777777777777777777", b"876155555553555566667773777777777775777777777775"),
+            (b"88605555555555566667777777777777777777777777", b"886055555553555566667773777777777775777777777775"),
+            (b"89695555555555566667777777777777777777777777", b"896955555553555566667773777777777775777777777775"),
+        ];
+
+        for (barcode, linha_digitavel) in barcodes.iter() {
+            assert_eq!(
+                LinhaDigitavel::try_from(&(CodBarras::new(*barcode).unwrap())).unwrap().0,
+                **linha_digitavel,
+            );
+        }
+    }
 
     #[test]
-    fn validate_converting_linha_digitavel_to_barcode() {}
+    fn validate_converting_linha_digitavel_to_barcode() {
+        let barcodes = [
+            (b"81675555555555566667777777777777777777777777", b"816755555553555566667773777777777775777777777775"),
+            (b"82665555555555566667777777777777777777777777", b"826655555553555566667773777777777775777777777775"),
+            (b"83655555555555566667777777777777777777777777", b"836555555553555566667773777777777775777777777775"),
+            (b"84645555555555566667777777777777777777777777", b"846455555553555566667773777777777775777777777775"),
+            (b"85635555555555566667777777777777777777777777", b"856355555553555566667773777777777775777777777775"),
+            (b"86625555555555566667777777777777777777777777", b"866255555553555566667773777777777775777777777775"),
+            (b"87615555555555566667777777777777777777777777", b"876155555553555566667773777777777775777777777775"),
+            (b"88605555555555566667777777777777777777777777", b"886055555553555566667773777777777775777777777775"),
+            (b"89695555555555566667777777777777777777777777", b"896955555553555566667773777777777775777777777775"),
+        ];
+
+        for (barcode, linha_digitavel) in barcodes.iter() {
+            assert_eq!(
+                CodBarras::from(&LinhaDigitavel::new(*linha_digitavel).unwrap()).0,
+                **barcode,
+            );
+        }
+    }
 }

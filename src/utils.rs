@@ -55,26 +55,26 @@ pub mod dv_utils {
     where
         I: DoubleEndedIterator<Item = &'a u8>
     {
-        let soma: u8 = values.rev()
+        let soma: usize = values.rev()
             .zip([2, 1].iter().cycle())
             .map(|(n, i)| {
                 match (n - b'0') * i {
-                    x if x > 9 => (x / 10) + (x % 10),
-                    x => x,
+                    x if x > 9 => ((x / 10) + (x % 10)) as usize,
+                    x => x as usize,
                 }
             })
             .sum();
 
-        ((10 - (soma % 10)) % 10) + b'0'
+        ((10 - (soma % 10)) % 10) as u8 + b'0'
     }
 
     pub fn mod_11<'a, I>(values: I) -> Option<u8>
     where
         I: DoubleEndedIterator<Item = &'a u8>
     {
-        let soma: u32 = values.rev()
+        let soma: usize = values.rev()
             .zip((2..=9).cycle())
-            .map(|(n, i)| (n - b'0') as u32 * i)
+            .map(|(n, i)| (n - b'0') as usize * i)
             .sum();
 
         match 11 - (soma % 11) {

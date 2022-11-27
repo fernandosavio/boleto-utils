@@ -127,6 +127,14 @@ impl LinhaDigitavel {
     pub fn as_str(&self) -> &str {
         unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
+
+    pub fn calculate_dvs(&self) -> Result<(u8, u8, u8), BoletoError> {
+        Ok((
+            dv_utils::mod_10(self[0..9].iter()),
+            dv_utils::mod_10(self[10..20].iter()),
+            dv_utils::mod_10(self[21..31].iter()),
+        ))
+    }
 }
 
 impl From<&CodBarras> for LinhaDigitavel {
@@ -309,6 +317,17 @@ impl Cobranca {
             }
 
             dv
+        };
+
+        {
+            let dvs = linha_digitavel.calculate_dvs()?;
+
+            if linha_digitavel[9] != dvs.0
+                || linha_digitavel[20] != dvs.1
+                || linha_digitavel[31] != dvs.2
+            {
+                return Err(BoletoError::InvalidDigitoVerificador);
+            }
         };
 
         Ok(Self {

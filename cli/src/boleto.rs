@@ -1,8 +1,9 @@
 use anyhow::Result;
 use clap::{Args, Parser, Subcommand, ValueEnum};
-use boleto_utils::{Boleto, BoletoError};
+use boleto_utils::Boleto;
 // use boleto_utils::arrecadacao::CodBarras as CodBarrasArr;
 use boleto_utils::arrecadacao::LinhaDigitavel as LinhaDigitavelArr;
+use boleto_utils::cobranca::LinhaDigitavel as LinhaDigitavelCob;
 // use boleto_utils::cobranca::CodBarras as CodBarrasCob;
 
 #[derive(Parser)]
@@ -71,10 +72,15 @@ fn main() -> Result<()> {
                     let dv = Boleto::calculate_digito_verificador(input.cod_barras.as_bytes())?;
                     println!("Código de barras: {:?}", dv);
                 },
+                47 => {
+                    let ld = LinhaDigitavelCob::new(input.cod_barras.as_bytes())?;
+                    let dvs = ld.calculate_dvs()?;
+                    println!("Linha digitável: {:?} | {:?} | {:?}", dvs.0 - b'0', dvs.1 - b'0', dvs.2 - b'0');
+                },
                 48 => {
                     let ld = LinhaDigitavelArr::new(input.cod_barras.as_bytes())?;
                     let dvs = ld.calculate_dvs()?;
-                    println!("Linha digitável: {} - {} - {} - {}", dvs.0, dvs.1, dvs.2, dvs.3);
+                    println!("Linha digitável: {:?} | {:?} | {:?} | {:?}", dvs.0 - b'0', dvs.1 - b'0', dvs.2 - b'0', dvs.3 - b'0');
                 },
                 _ => println!("Input inválido"),
             }
