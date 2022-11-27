@@ -1,17 +1,15 @@
 use anyhow::Result;
-use clap::{Args, Parser, Subcommand, ValueEnum};
+use boleto_utils::arrecadacao::{CodBarras as CodBarrasArr, LinhaDigitavel as LinhaDigitavelArr};
+use boleto_utils::cobranca::{CodBarras as CodBarrasCob, LinhaDigitavel as LinhaDigitavelCob};
 use boleto_utils::Boleto;
-// use boleto_utils::arrecadacao::CodBarras as CodBarrasArr;
-use boleto_utils::arrecadacao::LinhaDigitavel as LinhaDigitavelArr;
-use boleto_utils::cobranca::LinhaDigitavel as LinhaDigitavelCob;
-// use boleto_utils::cobranca::CodBarras as CodBarrasCob;
+use clap::{Args, Parser, Subcommand, ValueEnum};
 
 #[derive(Parser)]
 #[clap(
     version,
     about,
     propagate_version = true,
-    arg_required_else_help = true,
+    arg_required_else_help = true
 )]
 struct Cli {
     #[clap(subcommand)]
@@ -21,17 +19,11 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Analisa o código de barra retornando os dados extraídos.
-    #[clap(
-        arg_required_else_help = true,
-        visible_alias = "i",
-    )]
+    #[clap(arg_required_else_help = true, visible_alias = "i")]
     Info(BarcodeInput),
     /// Calcula o dígito verificador de um código de barras validando
     /// apenas o mínimo de dados necessário para realizar o cálculo.
-    #[clap(
-        arg_required_else_help = true,
-        visible_alias = "dv",
-    )]
+    #[clap(arg_required_else_help = true, visible_alias = "dv")]
     DigitoVerificador(BarcodeInput),
 }
 
@@ -66,24 +58,81 @@ fn main() -> Result<()> {
                 Format::Yaml => println!("{}", serde_yaml::to_string(&boleto)?),
             }
         }
-        Some(Commands::DigitoVerificador(input )) => {
-            match input.cod_barras.len() {
-                44 => {
-                    let dv = Boleto::calculate_digito_verificador(input.cod_barras.as_bytes())?;
-                    println!("Código de barras: {:?}", dv);
-                },
-                47 => {
-                    let ld = LinhaDigitavelCob::new(input.cod_barras.as_bytes())?;
-                    let dvs = ld.calculate_dvs()?;
-                    println!("Linha digitável: {:?} | {:?} | {:?}", dvs.0 - b'0', dvs.1 - b'0', dvs.2 - b'0');
-                },
-                48 => {
-                    let ld = LinhaDigitavelArr::new(input.cod_barras.as_bytes())?;
-                    let dvs = ld.calculate_dvs()?;
-                    println!("Linha digitável: {:?} | {:?} | {:?} | {:?}", dvs.0 - b'0', dvs.1 - b'0', dvs.2 - b'0', dvs.3 - b'0');
-                },
-                _ => println!("Input inválido"),
+        Some(Commands::DigitoVerificador(input)) => match input.cod_barras.len() {
+            44 => {
+                let dv = Boleto::calculate_digito_verificador(input.cod_barras.as_bytes())?;
+                println!("Código de barras: {:?}", dv);
             }
+            47 => {
+                let linha_digitavel = LinhaDigitavelCob::new(input.cod_barras.as_bytes())?;
+                let cod_barras: CodBarrasCob = (&linha_digitavel).into();
+
+                let dv = cod_barras.calculate_dv()?;
+                let dvs = cod_barras.calculate_dv_campos();
+
+                // atualizando dv dos campos
+                let mut correct_barcode = *cod_barras;
+                correct_barcode[4] = dv;
+
+                let mut correct_linha_digitavel = *linha_digitavel;
+
+                correct_linha_digitavel[9] = dvs.0;
+                correct_linha_digitavel[20] = dvs.1;
+                correct_linha_digitavel[31] = dvs.2;
+                // DV
+                correct_linha_digitavel[32] = dv;
+
+                println!(
+                    concat!(
+                        "        DV geral: {}\n",
+                        "       DV campos: {} | {} | {}\n",
+                        "Código de barras: {}\n",
+                        " Linha digitável: {}\n",
+                    ),
+                    dv,
+                    dvs.0 - b'0',
+                    dvs.1 - b'0',
+                    dvs.2 - b'0',
+                    unsafe { std::str::from_utf8_unchecked(&correct_barcode) },
+                    unsafe { std::str::from_utf8_unchecked(&correct_linha_digitavel) },
+                );
+            }
+            48 => {
+                let linha_digitavel = LinhaDigitavelArr::new(input.cod_barras.as_bytes())?;
+                let cod_barras: CodBarrasArr = (&linha_digitavel).into();
+
+                let dv = cod_barras.calculate_dv()?;
+                let dvs = cod_barras.calculate_dv_campos()?;
+
+                // atualizando dv dos campos
+                let mut correct_barcode = *cod_barras;
+                correct_barcode[3] = dv + b'0';
+
+                let mut correct_linha_digitavel = *linha_digitavel;
+                correct_linha_digitavel[11] = dvs.0;
+                correct_linha_digitavel[23] = dvs.1;
+                correct_linha_digitavel[35] = dvs.2;
+                correct_linha_digitavel[47] = dvs.3;
+                // DV
+                correct_linha_digitavel[3] = dv + b'0';
+
+                println!(
+                    concat!(
+                        "        DV geral: {}\n",
+                        "       DV campos: {} | {} | {} | {}\n",
+                        "Código de barras: {}\n",
+                        " Linha digitável: {}",
+                    ),
+                    dv,
+                    dvs.0 - b'0',
+                    dvs.1 - b'0',
+                    dvs.2 - b'0',
+                    dvs.3 - b'0',
+                    unsafe { std::str::from_utf8_unchecked(&correct_barcode) },
+                    unsafe { std::str::from_utf8_unchecked(&correct_linha_digitavel) },
+                );
+            }
+            _ => println!("Input inválido"),
         },
         None => println!("Comando não encontrado, use --help para ajuda."),
     }

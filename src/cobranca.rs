@@ -34,7 +34,7 @@ impl CodBarras {
         unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
 
-    pub fn calculate_digito_verificador(&self) -> Result<u8, BoletoError> {
+    pub fn calculate_dv(&self) -> Result<u8, BoletoError> {
         // Cria um iterator que itera sobre os caracteres do código de barras
         // exceto o dígito verificador
         let iterator_without_dv = self[..4]
@@ -43,6 +43,14 @@ impl CodBarras {
 
         Ok(
             dv_utils::mod_11(iterator_without_dv).unwrap_or(b'1') - b'0'
+        )
+    }
+
+    pub fn calculate_dv_campos(&self) -> (u8, u8, u8) {
+        (
+            dv_utils::mod_10(self[0..4].iter().chain(self[19..24].iter())),
+            dv_utils::mod_10(self[24..34].iter()),
+            dv_utils::mod_10(self[34..44].iter()),
         )
     }
 }
@@ -127,14 +135,6 @@ impl LinhaDigitavel {
     pub fn as_str(&self) -> &str {
         unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
-
-    pub fn calculate_dvs(&self) -> Result<(u8, u8, u8), BoletoError> {
-        Ok((
-            dv_utils::mod_10(self[0..9].iter()),
-            dv_utils::mod_10(self[10..20].iter()),
-            dv_utils::mod_10(self[21..31].iter()),
-        ))
-    }
 }
 
 impl From<&CodBarras> for LinhaDigitavel {
@@ -151,19 +151,20 @@ impl From<&CodBarras> for LinhaDigitavel {
         let CodBarras(src) = cod_barras;
 
         let mut digitable_line = [0_u8; Cobranca::LINHA_DIGITAVEL_LENGTH];
+        let (dv1, dv2, dv3) = cod_barras.calculate_dv_campos();
 
         // Campo 1
         digitable_line[0..4].copy_from_slice(&src[0..4]);
         digitable_line[4..9].copy_from_slice(&src[19..24]);
-        digitable_line[9] = dv_utils::mod_10(digitable_line[0..9].iter());
+        digitable_line[9] = dv1;
 
         // Campo 2
         digitable_line[10..20].copy_from_slice(&src[24..34]);
-        digitable_line[20] = dv_utils::mod_10(digitable_line[10..20].iter());
+        digitable_line[20] = dv2;
 
         // Campo 3
         digitable_line[21..31].copy_from_slice(&src[34..44]);
-        digitable_line[31] = dv_utils::mod_10(digitable_line[21..31].iter());
+        digitable_line[31] = dv3;
 
         // DV
         digitable_line[32] = src[4];
@@ -310,7 +311,7 @@ impl Cobranca {
         };
 
         let digito_verificador: u8 = {
-            let dv = cod_barras.calculate_digito_verificador()?;
+            let dv = cod_barras.calculate_dv()?;
 
             if dv != cod_barras[4] - b'0' {
                 return Err(BoletoError::InvalidDigitoVerificador);
@@ -320,7 +321,7 @@ impl Cobranca {
         };
 
         {
-            let dvs = linha_digitavel.calculate_dvs()?;
+            let dvs = cod_barras.calculate_dv_campos();
 
             if linha_digitavel[9] != dvs.0
                 || linha_digitavel[20] != dvs.1
@@ -525,7 +526,7 @@ mod tests {
 
         for (barcode, expected) in barcodes.iter() {
             assert_eq!(
-                CodBarras::new(*barcode).unwrap().calculate_digito_verificador().unwrap(),
+                CodBarras::new(*barcode).unwrap().calculate_dv().unwrap(),
                 *expected,
             );
         }

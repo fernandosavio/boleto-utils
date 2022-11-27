@@ -44,7 +44,7 @@ impl CodBarras {
         Segmento::try_from(self[1]).map_err(|_| BoletoError::InvalidSegmento)
     }
 
-    pub fn calculate_digito_verificador(&self) -> Result<u8, BoletoError> {
+    pub fn calculate_dv(&self) -> Result<u8, BoletoError> {
         // Cria um iterator que itera sobre os caracteres do código de barras
         // exceto o dígito verificador
         let iterator_without_dv = self[..3].iter().chain(self[4..].iter());
@@ -55,6 +55,24 @@ impl CodBarras {
             }
             _ => dv_utils::mod_11(iterator_without_dv).unwrap_or(b'0'),
         } - b'0')
+    }
+
+    pub fn calculate_dv_campos(&self) -> Result<(u8, u8, u8, u8), BoletoError> {
+        match TipoValor::try_from(self[2]) {
+            Err(_) => Err(BoletoError::InvalidTipoValor),
+            Ok(TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10) => Ok((
+                dv_utils::mod_10(self[0..11].iter()),
+                dv_utils::mod_10(self[11..22].iter()),
+                dv_utils::mod_10(self[22..33].iter()),
+                dv_utils::mod_10(self[33..44].iter()),
+            )),
+            _ => Ok((
+                dv_utils::mod_11(self[0..11].iter()).unwrap_or(b'0'),
+                dv_utils::mod_11(self[11..22].iter()).unwrap_or(b'0'),
+                dv_utils::mod_11(self[22..33].iter()).unwrap_or(b'0'),
+                dv_utils::mod_11(self[33..44].iter()).unwrap_or(b'0'),
+            )),
+        }
     }
 }
 
@@ -147,24 +165,6 @@ impl LinhaDigitavel {
     pub fn as_str(&self) -> &str {
         unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
-
-    pub fn calculate_dvs(&self) -> Result<(u8, u8, u8, u8), BoletoError> {
-        match TipoValor::try_from(self[2]) {
-            Err(_) => Err(BoletoError::InvalidTipoValor),
-            Ok(TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10) => Ok((
-                dv_utils::mod_10(self[0..11].iter()),
-                dv_utils::mod_10(self[12..23].iter()),
-                dv_utils::mod_10(self[24..35].iter()),
-                dv_utils::mod_10(self[36..47].iter()),
-            )),
-            _ => Ok((
-                dv_utils::mod_11(self[0..11].iter()).unwrap_or(b'0'),
-                dv_utils::mod_11(self[12..23].iter()).unwrap_or(b'0'),
-                dv_utils::mod_11(self[24..35].iter()).unwrap_or(b'0'),
-                dv_utils::mod_11(self[36..47].iter()).unwrap_or(b'0'),
-            )),
-        }
-    }
 }
 
 impl TryFrom<&CodBarras> for LinhaDigitavel {
@@ -191,44 +191,23 @@ impl TryFrom<&CodBarras> for LinhaDigitavel {
 
         let CodBarras(src) = cod_barras;
         let mut digitable_line = [0_u8; 48];
-
-        let is_mod_10 = match TipoValor::try_from(cod_barras[2]) {
-            Ok(TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10) => true,
-            Err(_) => return Err(BoletoError::InvalidTipoValor),
-            _ => false,
-        };
+        let (dv1, dv2, dv3, dv4) = cod_barras.calculate_dv_campos()?;
 
         // Campo 1
         digitable_line[0..11].copy_from_slice(&src[0..11]);
-        digitable_line[11] = if is_mod_10 {
-            dv_utils::mod_10(digitable_line[0..11].iter())
-        } else {
-            dv_utils::mod_11(digitable_line[0..11].iter()).unwrap_or(b'0')
-        };
+        digitable_line[11] = dv1;
 
         // Campo 2
         digitable_line[12..23].copy_from_slice(&src[11..22]);
-        digitable_line[23] = if is_mod_10 {
-            dv_utils::mod_10(digitable_line[12..23].iter())
-        } else {
-            dv_utils::mod_11(digitable_line[12..23].iter()).unwrap_or(b'0')
-        };
+        digitable_line[23] = dv2;
 
         // Campo 3
         digitable_line[24..35].copy_from_slice(&src[22..33]);
-        digitable_line[35] = if is_mod_10 {
-            dv_utils::mod_10(digitable_line[24..35].iter())
-        } else {
-            dv_utils::mod_11(digitable_line[24..35].iter()).unwrap_or(b'0')
-        };
+        digitable_line[35] = dv3;
 
         // Campo 4
         digitable_line[36..47].copy_from_slice(&src[33..44]);
-        digitable_line[47] = if is_mod_10 {
-            dv_utils::mod_10(digitable_line[36..47].iter())
-        } else {
-            dv_utils::mod_11(digitable_line[36..47].iter()).unwrap_or(b'0')
-        };
+        digitable_line[47] = dv4;
 
         Ok(Self(digitable_line))
     }
@@ -402,7 +381,7 @@ impl Arrecadacao {
         };
 
         let digito_verificador = {
-            let dv = cod_barras.calculate_digito_verificador()?;
+            let dv = cod_barras.calculate_dv()?;
 
             if dv != cod_barras[3] - b'0' {
                 return Err(BoletoError::InvalidDigitoVerificador);
@@ -411,7 +390,7 @@ impl Arrecadacao {
         };
 
         {
-            let correct_dvs = linha_digitavel.calculate_dvs()?;
+            let correct_dvs = cod_barras.calculate_dv_campos()?;
 
             if linha_digitavel[11] != correct_dvs.0
                 || linha_digitavel[23] != correct_dvs.1
@@ -553,7 +532,7 @@ mod tests {
 
         for (barcode, expected) in barcodes.iter() {
             assert_eq!(
-                CodBarras::new(*barcode).unwrap().calculate_digito_verificador().unwrap(),
+                CodBarras::new(*barcode).unwrap().calculate_dv().unwrap(),
                 *expected,
             );
         }

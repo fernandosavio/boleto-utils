@@ -69,10 +69,10 @@ impl Boleto {
         match value.first() {
             None => Err(BoletoError::InvalidLength),
             Some(b'8') => {
-                CodBarrasArr::new(value)?.calculate_digito_verificador()
+                CodBarrasArr::new(value)?.calculate_dv()
             },
             _ => {
-                CodBarrasCob::new(value)?.calculate_digito_verificador()
+                CodBarrasCob::new(value)?.calculate_dv()
             },
         }
     }
