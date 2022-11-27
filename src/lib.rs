@@ -97,7 +97,7 @@ mod tests {
                 );
                 assert_eq!(cob.valor, Some(214.03));
             },
-            _ => assert!(false, "Should be Cobranca"),
+            _ => panic!("Should be Cobranca"),
         }
     }
 }
