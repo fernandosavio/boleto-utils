@@ -1,6 +1,9 @@
 use anyhow::Result;
-use boleto_utils::Boleto;
 use clap::{Args, Parser, Subcommand, ValueEnum};
+use boleto_utils::{Boleto, BoletoError};
+// use boleto_utils::arrecadacao::CodBarras as CodBarrasArr;
+use boleto_utils::arrecadacao::LinhaDigitavel as LinhaDigitavelArr;
+// use boleto_utils::cobranca::CodBarras as CodBarrasCob;
 
 #[derive(Parser)]
 #[clap(
@@ -63,8 +66,18 @@ fn main() -> Result<()> {
             }
         }
         Some(Commands::DigitoVerificador(input )) => {
-            let dv = Boleto::calculate_digito_verificador(input.cod_barras.as_bytes())?;
-            println!("digito-verificador - cod_barras: {:?}", dv);
+            match input.cod_barras.len() {
+                44 => {
+                    let dv = Boleto::calculate_digito_verificador(input.cod_barras.as_bytes())?;
+                    println!("Código de barras: {:?}", dv);
+                },
+                48 => {
+                    let ld = LinhaDigitavelArr::new(input.cod_barras.as_bytes())?;
+                    let dvs = ld.calculate_dvs()?;
+                    println!("Linha digitável: {} - {} - {} - {}", dvs.0, dvs.1, dvs.2, dvs.3);
+                },
+                _ => println!("Input inválido"),
+            }
         },
         None => println!("Comando não encontrado, use --help para ajuda."),
     }

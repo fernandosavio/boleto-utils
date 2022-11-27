@@ -1,6 +1,6 @@
 mod utils;
-mod cobranca;
-mod arrecadacao;
+pub mod cobranca;
+pub mod arrecadacao;
 mod instituicoes_bancarias;
 mod concessionarias;
 
@@ -10,8 +10,6 @@ use thiserror::Error;
 
 use arrecadacao::CodBarras as CodBarrasArr;
 use cobranca::CodBarras as CodBarrasCob;
-// use arrecadacao::LinhaDigitavel as LinhaDigitavelArr;
-// use cobranca::LinhaDigitavel as LinhaDigitavelCob;
 
 use crate::cobranca::Cobranca;
 use crate::arrecadacao::Arrecadacao;

@@ -147,6 +147,24 @@ impl LinhaDigitavel {
     pub fn as_str(&self) -> &str {
         unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
+
+    pub fn calculate_dvs(&self) -> Result<(u8, u8, u8, u8), BoletoError> {
+        match TipoValor::try_from(self[2]) {
+            Err(_) => Err(BoletoError::InvalidTipoValor),
+            Ok(TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10) => Ok((
+                dv_utils::mod_10(self[0..11].iter()),
+                dv_utils::mod_10(self[12..23].iter()),
+                dv_utils::mod_10(self[24..35].iter()),
+                dv_utils::mod_10(self[36..47].iter()),
+            )),
+            _ => Ok((
+                dv_utils::mod_11(self[0..11].iter()).unwrap_or(b'0'),
+                dv_utils::mod_11(self[12..23].iter()).unwrap_or(b'0'),
+                dv_utils::mod_11(self[24..35].iter()).unwrap_or(b'0'),
+                dv_utils::mod_11(self[36..47].iter()).unwrap_or(b'0'),
+            )),
+        }
+    }
 }
 
 impl TryFrom<&CodBarras> for LinhaDigitavel {
@@ -395,27 +413,7 @@ impl Arrecadacao {
         };
 
         let digitos_verificadores_campos = {
-            let is_mod_10 = match TipoValor::try_from(cod_barras[2]) {
-                Ok(TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10) => true,
-                Err(_) => return Err(BoletoError::InvalidTipoValor),
-                _ => false,
-            };
-
-            let correct_dvs = if is_mod_10 {
-                (
-                    dv_utils::mod_10(linha_digitavel[0..11].iter()),
-                    dv_utils::mod_10(linha_digitavel[12..23].iter()),
-                    dv_utils::mod_10(linha_digitavel[24..35].iter()),
-                    dv_utils::mod_10(linha_digitavel[36..47].iter()),
-                )
-            } else {
-                (
-                    dv_utils::mod_11(linha_digitavel[0..11].iter()).unwrap_or(b'0'),
-                    dv_utils::mod_11(linha_digitavel[12..23].iter()).unwrap_or(b'0'),
-                    dv_utils::mod_11(linha_digitavel[24..35].iter()).unwrap_or(b'0'),
-                    dv_utils::mod_11(linha_digitavel[36..47].iter()).unwrap_or(b'0'),
-                )
-            };
+            let correct_dvs = linha_digitavel.calculate_dvs()?;
 
             if linha_digitavel[11] != correct_dvs.0
                 || linha_digitavel[23] != correct_dvs.1
@@ -480,11 +478,30 @@ mod tests {
         assert!(matches!(Arrecadacao::new(b"876155555553555566667773777777777775777777777775").unwrap().segmento, Segmento::MultasTransito));
         assert!(matches!(Arrecadacao::new(b"886055555559555566667778777777777778777777777779"), Err(BoletoError::InvalidSegmento)));
         assert!(matches!(Arrecadacao::new(b"896955555553555566667773777777777775777777777775").unwrap().segmento, Segmento::ExclusivoDoBanco));
-
     }
 
     #[test]
-    fn get_tipo_valor_correctly() {}
+    fn get_tipo_valor_correctly() {
+        assert!(matches!(Arrecadacao::new(b"86105555555555566667777777777777777777777777"), Err(BoletoError::InvalidTipoValor)));
+        assert!(matches!(Arrecadacao::new(b"86205555555555566667777777777777777777777777"), Err(BoletoError::InvalidTipoValor)));
+        assert!(matches!(Arrecadacao::new(b"86305555555555566667777777777777777777777777"), Err(BoletoError::InvalidTipoValor)));
+        assert!(matches!(Arrecadacao::new(b"86405555555555566667777777777777777777777777"), Err(BoletoError::InvalidTipoValor)));
+        assert!(matches!(Arrecadacao::new(b"86505555555555566667777777777777777777777777"), Err(BoletoError::InvalidTipoValor)));
+        assert!(matches!(Arrecadacao::new(b"86625555555555566667777777777777777777777777").unwrap().tipo_valor, TipoValor::ValorReaisMod10));
+        assert!(matches!(Arrecadacao::new(b"86705555555555566667777777777777777777777777").unwrap().tipo_valor, TipoValor::QtdeMoedaMod10));
+        assert!(matches!(Arrecadacao::new(b"86805555555555566667777777777777777777777777").unwrap().tipo_valor, TipoValor::ValorReaisMod11));
+        assert!(matches!(Arrecadacao::new(b"86995555555555566667777777777777777777777777").unwrap().tipo_valor, TipoValor::QtdeMoedaMod11));
+
+        assert!(matches!(Arrecadacao::new(b"861055555553555566667773777777777775777777777775").unwrap().segmento, Segmento::Prefeituras));
+        assert!(matches!(Arrecadacao::new(b"862055555553555566667773777777777775777777777775").unwrap().segmento, Segmento::Saneamento));
+        assert!(matches!(Arrecadacao::new(b"863055555553555566667773777777777775777777777775").unwrap().segmento, Segmento::EnergiaEletricaEGas));
+        assert!(matches!(Arrecadacao::new(b"864055555553555566667773777777777775777777777775").unwrap().segmento, Segmento::Telecomunicacoes));
+        assert!(matches!(Arrecadacao::new(b"865055555553555566667773777777777775777777777775").unwrap().segmento, Segmento::OrgaosGovernamentais));
+        assert!(matches!(Arrecadacao::new(b"866055555553555566667773777777777775777777777775").unwrap().segmento, Segmento::Carnes));
+        assert!(matches!(Arrecadacao::new(b"867055555553555566667773777777777775777777777775").unwrap().segmento, Segmento::MultasTransito));
+        assert!(matches!(Arrecadacao::new(b"868055555559555566667778777777777778777777777779"), Err(BoletoError::InvalidSegmento)));
+        assert!(matches!(Arrecadacao::new(b"869055555553555566667773777777777775777777777775").unwrap().segmento, Segmento::ExclusivoDoBanco));
+    }
 
     #[test]
     fn get_valor_correctly() {}
