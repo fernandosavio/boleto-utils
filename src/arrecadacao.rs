@@ -24,6 +24,8 @@ impl CodBarras {
             return Err(BoletoError::NumbersOnly);
         }
 
+        TipoValor::try_from(input[2]).map_err(|_| BoletoError::InvalidTipoValor)?;
+
         let mut cod_barras = [0u8; Arrecadacao::COD_BARRAS_LENGTH];
         cod_barras.copy_from_slice(input);
 
@@ -58,23 +60,32 @@ impl CodBarras {
 
 impl From<&LinhaDigitavel> for CodBarras {
     fn from(linha_digitavel: &LinhaDigitavel) -> Self {
-        // 00000 00000 11111 111112 22222 222233 3 33333334444444
-        // 01234.56789 01234.567890 12345.678901 2 34567890123456
-        // AAABC.CCCCX DDDDD.DDDDDY EEEEE.EEEEEZ K UUUUVVVVVVVVVV
+        // Arrecadação
+        // 00000000001   11111111122   22222222333   33333334444
+        // 01234567890   12345678901   23456789012   34567890123
+        // ABCDEEEEEEE   EEEEFFFFGGG   GGGGGGGGGGG   GGGGGGGGGGG
 
-        // 00000000001111111111222222222233333333334444
-        // 01234567890123456789012345678901234567890123
-        // AAABKUUUUVVVVVVVVVVCCCCCDDDDDDDDDDEEEEEEEEEE
+        // 00000000001-1 11111111222-2 22222233333-3 33334444444-4
+        // 01234567890-1 23456789012-3 45678901234-5 67890123456-7
+        // ABCDEEEEEEE-W EEEEFFFFGGG-X GGGGGGGGGGG-Y GGGGGGGGGGG-Z
+
+        // Carnês
+        // 00000000001   11111111122   22222222333   33333334444
+        // 01234567890   12345678901   23456789012   34567890123
+        // ABCDEEEEEEE   EEEEFFFFFFF   FGGGGGGGGGG   GGGGGGGGGGG
+
+        // 00000000001-1 11111111222-2 22222233333-3 33334444444-4
+        // 01234567890-1 23456789012-3 45678901234-5 67890123456-7
+        // ABCDEEEEEEE-W EEEEFFFFFFF-X FGGGGGGGGGG-Y GGGGGGGGGGG-Z
 
         let LinhaDigitavel(src) = linha_digitavel;
 
         let mut barcode = [0_u8; 44];
 
-        barcode[0..4].copy_from_slice(&src[0..4]);
-        barcode[4..19].copy_from_slice(&src[32..47]);
-        barcode[19..24].copy_from_slice(&src[4..9]);
-        barcode[24..34].copy_from_slice(&src[10..20]);
-        barcode[34..44].copy_from_slice(&src[21..31]);
+        barcode[0..11].copy_from_slice(&src[0..11]);
+        barcode[11..22].copy_from_slice(&src[12..23]);
+        barcode[22..33].copy_from_slice(&src[24..35]);
+        barcode[33..44].copy_from_slice(&src[36..47]);
 
         Self(barcode)
     }
@@ -138,8 +149,10 @@ impl LinhaDigitavel {
     }
 }
 
-impl From<&CodBarras> for LinhaDigitavel {
-    fn from(cod_barras: &CodBarras) -> Self {
+impl TryFrom<&CodBarras> for LinhaDigitavel {
+    type Error = BoletoError;
+
+    fn try_from(cod_barras: &CodBarras) -> Result<Self, Self::Error> {
         // Arrecadação
         // 00000000001   11111111122   22222222333   33333334444
         // 01234567890   12345678901   23456789012   34567890123
@@ -161,23 +174,45 @@ impl From<&CodBarras> for LinhaDigitavel {
         let CodBarras(src) = cod_barras;
         let mut digitable_line = [0_u8; 48];
 
+        let is_mod_10 = match TipoValor::try_from(cod_barras[2]) {
+            Ok(TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10) => true,
+            Err(_) => return Err(BoletoError::InvalidTipoValor),
+            _ => false,
+        };
+
         // Campo 1
         digitable_line[0..11].copy_from_slice(&src[0..11]);
-        digitable_line[11] = dv_utils::mod_10(digitable_line[0..11].iter());
+        digitable_line[11] = if is_mod_10 {
+            dv_utils::mod_10(digitable_line[0..11].iter())
+        } else {
+            dv_utils::mod_11(digitable_line[0..11].iter()).unwrap_or(b'0')
+        };
 
         // Campo 2
         digitable_line[12..23].copy_from_slice(&src[11..22]);
-        digitable_line[23] = dv_utils::mod_10(digitable_line[12..23].iter());
+        digitable_line[23] = if is_mod_10 {
+            dv_utils::mod_10(digitable_line[12..23].iter())
+        } else {
+            dv_utils::mod_11(digitable_line[12..23].iter()).unwrap_or(b'0')
+        };
 
         // Campo 3
         digitable_line[24..35].copy_from_slice(&src[22..33]);
-        digitable_line[35] = dv_utils::mod_10(digitable_line[24..35].iter());
+        digitable_line[35] = if is_mod_10 {
+            dv_utils::mod_10(digitable_line[24..35].iter())
+        } else {
+            dv_utils::mod_11(digitable_line[24..35].iter()).unwrap_or(b'0')
+        };
 
         // Campo 4
         digitable_line[36..47].copy_from_slice(&src[33..44]);
-        digitable_line[47] = dv_utils::mod_10(digitable_line[36..47].iter());
+        digitable_line[47] = if is_mod_10 {
+            dv_utils::mod_10(digitable_line[36..47].iter())
+        } else {
+            dv_utils::mod_11(digitable_line[36..47].iter()).unwrap_or(b'0')
+        };
 
-        Self(digitable_line)
+        Ok(Self(digitable_line))
     }
 }
 
@@ -292,6 +327,8 @@ pub struct Arrecadacao {
     pub tipo_valor: TipoValor,
     #[serde(skip)]
     pub digito_verificador: u8,
+    #[serde(skip)]
+    pub digitos_verificadores_campos: (u8, u8, u8, u8),
     pub valor: Option<f64>,
     pub convenio: Convenio,
 }
@@ -319,14 +356,14 @@ impl fmt::Display for Arrecadacao {
 }
 
 impl Arrecadacao {
-    const COD_BARRAS_LENGTH: usize = 44;
-    const LINHA_DIGITAVEL_LENGTH: usize = 48;
+    pub const COD_BARRAS_LENGTH: usize = 44;
+    pub const LINHA_DIGITAVEL_LENGTH: usize = 48;
 
     pub fn new(value: &[u8]) -> Result<Self, BoletoError> {
         let (cod_barras, linha_digitavel): (CodBarras, LinhaDigitavel) = match value.len() {
             Self::COD_BARRAS_LENGTH => {
                 let cod_barras = CodBarras::new(value)?;
-                let linha_digitavel = LinhaDigitavel::from(&cod_barras);
+                let linha_digitavel = LinhaDigitavel::try_from(&cod_barras)?;
                 (cod_barras, linha_digitavel)
             }
             Self::LINHA_DIGITAVEL_LENGTH => {
@@ -338,15 +375,6 @@ impl Arrecadacao {
 
         let tipo_valor = cod_barras.tipo_valor()?;
 
-        let digito_verificador = {
-            let dv = cod_barras.calculate_digito_verificador()?;
-
-            if dv != cod_barras[3] - b'0' {
-                return Err(BoletoError::InvalidDigitoVerificador);
-            }
-            dv
-        };
-
         let segmento: Segmento = cod_barras.segmento()?;
 
         let convenio = match segmento {
@@ -357,6 +385,49 @@ impl Arrecadacao {
             )),
         };
 
+        let digito_verificador = {
+            let dv = cod_barras.calculate_digito_verificador()?;
+
+            if dv != cod_barras[3] - b'0' {
+                return Err(BoletoError::InvalidDigitoVerificador);
+            }
+            dv
+        };
+
+        let digitos_verificadores_campos = {
+            let is_mod_10 = match TipoValor::try_from(cod_barras[2]) {
+                Ok(TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10) => true,
+                Err(_) => return Err(BoletoError::InvalidTipoValor),
+                _ => false,
+            };
+
+            let correct_dvs = if is_mod_10 {
+                (
+                    dv_utils::mod_10(linha_digitavel[0..11].iter()),
+                    dv_utils::mod_10(linha_digitavel[12..23].iter()),
+                    dv_utils::mod_10(linha_digitavel[24..35].iter()),
+                    dv_utils::mod_10(linha_digitavel[36..47].iter()),
+                )
+            } else {
+                (
+                    dv_utils::mod_11(linha_digitavel[0..11].iter()).unwrap_or(b'0'),
+                    dv_utils::mod_11(linha_digitavel[12..23].iter()).unwrap_or(b'0'),
+                    dv_utils::mod_11(linha_digitavel[24..35].iter()).unwrap_or(b'0'),
+                    dv_utils::mod_11(linha_digitavel[36..47].iter()).unwrap_or(b'0'),
+                )
+            };
+
+            if linha_digitavel[11] != correct_dvs.0
+                || linha_digitavel[23] != correct_dvs.1
+                || linha_digitavel[35] != correct_dvs.2
+                || linha_digitavel[47] != correct_dvs.3
+            {
+                return Err(BoletoError::InvalidDigitoVerificador);
+            }
+
+            correct_dvs
+        };
+
         Ok(Self {
             valor: Self::valor(&cod_barras, &tipo_valor),
             cod_barras,
@@ -364,6 +435,7 @@ impl Arrecadacao {
             segmento,
             tipo_valor,
             digito_verificador,
+            digitos_verificadores_campos,
             convenio,
         })
     }
@@ -385,7 +457,40 @@ impl Arrecadacao {
 
 #[cfg(test)]
 mod tests {
-    use super::CodBarras;
+    use super::*;
+
+    #[test]
+    fn get_cod_segmento_correctly() {
+        assert!(matches!(Arrecadacao::new(b"81675555555555566667777777777777777777777777").unwrap().segmento, Segmento::Prefeituras));
+        assert!(matches!(Arrecadacao::new(b"82665555555555566667777777777777777777777777").unwrap().segmento, Segmento::Saneamento));
+        assert!(matches!(Arrecadacao::new(b"83655555555555566667777777777777777777777777").unwrap().segmento, Segmento::EnergiaEletricaEGas));
+        assert!(matches!(Arrecadacao::new(b"84645555555555566667777777777777777777777777").unwrap().segmento, Segmento::Telecomunicacoes));
+        assert!(matches!(Arrecadacao::new(b"85635555555555566667777777777777777777777777").unwrap().segmento, Segmento::OrgaosGovernamentais));
+        assert!(matches!(Arrecadacao::new(b"86625555555555566667777777777777777777777777").unwrap().segmento, Segmento::Carnes));
+        assert!(matches!(Arrecadacao::new(b"87615555555555566667777777777777777777777777").unwrap().segmento, Segmento::MultasTransito));
+        assert!(matches!(Arrecadacao::new(b"88605555555555566667777777777777777777777777"), Err(BoletoError::InvalidSegmento)));
+        assert!(matches!(Arrecadacao::new(b"89695555555555566667777777777777777777777777").unwrap().segmento, Segmento::ExclusivoDoBanco));
+
+        assert!(matches!(Arrecadacao::new(b"816755555553555566667773777777777775777777777775").unwrap().segmento, Segmento::Prefeituras));
+        assert!(matches!(Arrecadacao::new(b"826655555553555566667773777777777775777777777775").unwrap().segmento, Segmento::Saneamento));
+        assert!(matches!(Arrecadacao::new(b"836555555553555566667773777777777775777777777775").unwrap().segmento, Segmento::EnergiaEletricaEGas));
+        assert!(matches!(Arrecadacao::new(b"846455555553555566667773777777777775777777777775").unwrap().segmento, Segmento::Telecomunicacoes));
+        assert!(matches!(Arrecadacao::new(b"856355555553555566667773777777777775777777777775").unwrap().segmento, Segmento::OrgaosGovernamentais));
+        assert!(matches!(Arrecadacao::new(b"866255555553555566667773777777777775777777777775").unwrap().segmento, Segmento::Carnes));
+        assert!(matches!(Arrecadacao::new(b"876155555553555566667773777777777775777777777775").unwrap().segmento, Segmento::MultasTransito));
+        assert!(matches!(Arrecadacao::new(b"886055555559555566667778777777777778777777777779"), Err(BoletoError::InvalidSegmento)));
+        assert!(matches!(Arrecadacao::new(b"896955555553555566667773777777777775777777777775").unwrap().segmento, Segmento::ExclusivoDoBanco));
+
+    }
+
+    #[test]
+    fn get_tipo_valor_correctly() {}
+
+    #[test]
+    fn get_valor_correctly() {}
+
+    #[test]
+    fn get_convenio_correctly() {}
 
     #[test]
     fn validate_digito_verificador_correctly() {
@@ -403,4 +508,10 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn validate_converting_barcode_to_linha_digitavel() {}
+
+    #[test]
+    fn validate_converting_linha_digitavel_to_barcode() {}
 }

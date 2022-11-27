@@ -261,8 +261,8 @@ impl fmt::Display for Cobranca {
 
 
 impl Cobranca {
-    const COD_BARRAS_LENGTH: usize = 44;
-    const LINHA_DIGITAVEL_LENGTH: usize = 47;
+    pub const COD_BARRAS_LENGTH: usize = 44;
+    pub const LINHA_DIGITAVEL_LENGTH: usize = 47;
 
     pub fn new(value: &[u8]) -> Result<Self, BoletoError> {
         let (cod_barras, linha_digitavel): (CodBarras, LinhaDigitavel) = match value.len() {
@@ -289,7 +289,7 @@ impl Cobranca {
         let fator_vencimento: u16 = u8_array_to_u16(&cod_barras[5..9]);
 
         if fator_vencimento > 0 && fator_vencimento < 1000 {
-            return Err(BoletoError::InvalidCodigoMoeda)
+            return Err(BoletoError::InvalidFatorVencimento);
         }
 
         let valor = {
@@ -327,9 +327,7 @@ impl Cobranca {
 
 #[cfg(test)]
 mod tests {
-    use chrono::NaiveDate;
-
-    use super::{Cobranca, CodigoMoeda, CodBarras, LinhaDigitavel};
+    use super::*;
 
     #[test]
     fn get_cod_banco_correctly() {
@@ -439,17 +437,32 @@ mod tests {
                 Some(NaiveDate::from_ymd(2016, 3, 1)),
             ),
         ];
-        for (barcode, expected_fator, expected_date) in barcodes.iter() {
+        for (barcode, expected_fator, expected_date) in barcodes {
             match Cobranca::new(barcode.as_slice()) {
                 Err(e) => {
                     panic!("Barcode should be considered valid. ({:?})", e);
-                }
+                },
                 Ok(result) => {
-                    assert_eq!(result.fator_vencimento, *expected_fator);
-                    assert_eq!(result.data_vencimento, *expected_date);
-                }
+                    assert_eq!(result.fator_vencimento, expected_fator);
+                    assert_eq!(result.data_vencimento, expected_date);
+                },
             };
         }
+
+        assert!(
+            matches!(
+                Cobranca::new(b"11196000155555555556666666666666666666666666".as_slice()),
+                Err(BoletoError::InvalidFatorVencimento),
+            )
+        );
+
+        assert!(
+            matches!(
+                Cobranca::new(b"11196099955555555556666666666666666666666666".as_slice()),
+                Err(BoletoError::InvalidFatorVencimento),
+            )
+        );
+
     }
 
     #[test]

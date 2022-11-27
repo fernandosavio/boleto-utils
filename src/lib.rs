@@ -10,6 +10,8 @@ use thiserror::Error;
 
 use arrecadacao::CodBarras as CodBarrasArr;
 use cobranca::CodBarras as CodBarrasCob;
+// use arrecadacao::LinhaDigitavel as LinhaDigitavelArr;
+// use cobranca::LinhaDigitavel as LinhaDigitavelCob;
 
 use crate::cobranca::Cobranca;
 use crate::arrecadacao::Arrecadacao;
@@ -21,7 +23,7 @@ pub enum BoletoError {
     NumbersOnly,
     #[error("tamanho inválido")]
     InvalidLength,
-    #[error("código Moeda inválido")]
+    #[error("código moeda inválido")]
     InvalidCodigoMoeda,
     #[error("dígito verificador inválido")]
     InvalidDigitoVerificador,
