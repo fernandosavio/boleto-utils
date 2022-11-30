@@ -5,11 +5,18 @@ version = "0.1.0"
 edition = "2021"
 
 authors = ["Fernando Sávio <admin@fsavio.dev>"]
-description = "Utility library to work with brazilian payment slip (aka 'boleto')."
-homepage = ""
-repository = ""
+description = "Utility library to parse brazilian payment slip (aka 'boleto') barcodes."
+readme = "README.md"
+homepage = "https://github.com/fernandosavio/boleto-utils/"
+repository = "https://github.com/fernandosavio/boleto-utils/"
 license = "MIT"
-keywords = ["barcode", "boleto"]
+keywords = ["barcode", "boleto", "codigo-de-barras", "linha-digitavel"]
+categories = ["parser-implementations"]
+
+exclude = [
+    "/data/*",
+    "/documents/*",
+]
 
 [workspace]
 members = ["cli"]
