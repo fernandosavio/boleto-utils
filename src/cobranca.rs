@@ -404,57 +404,57 @@ mod tests {
             (
                 b"11199100055555555556666666666666666666666666",
                 1000,
-                Some(NaiveDate::from_ymd(2025, 2, 22)),
+                Some(NaiveDate::from_ymd_opt(2025, 2, 22).unwrap()),
             ),
             (
                 b"11191100255555555556666666666666666666666666",
                 1002,
-                Some(NaiveDate::from_ymd(2025, 2, 24)),
+                Some(NaiveDate::from_ymd_opt(2025, 2, 24).unwrap()),
             ),
             (
                 b"11196166755555555556666666666666666666666666",
                 1667,
-                Some(NaiveDate::from_ymd(2026, 12, 21)),
+                Some(NaiveDate::from_ymd_opt(2026, 12, 21).unwrap()),
             ),
             (
                 b"11198478955555555556666666666666666666666666",
                 4789,
-                Some(NaiveDate::from_ymd(2010, 11, 17)),
+                Some(NaiveDate::from_ymd_opt(2010, 11, 17).unwrap()),
             ),
             (
                 b"11193999955555555556666666666666666666666666",
                 9999,
-                Some(NaiveDate::from_ymd(2025, 2, 21)),
+                Some(NaiveDate::from_ymd_opt(2025, 2, 21).unwrap()),
             ),
             (
                 b"75696903800002500001434301033723400014933001",
                 9038,
-                Some(NaiveDate::from_ymd(2022, 7, 6)),
+                Some(NaiveDate::from_ymd_opt(2022, 7, 6).unwrap()),
             ),
             (
                 b"00191667900002434790000002656973019362470618",
                 6679,
-                Some(NaiveDate::from_ymd(2016, 1, 20)),
+                Some(NaiveDate::from_ymd_opt(2016, 1, 20).unwrap()),
             ),
             (
                 b"00195586200000773520000002464206011816073018",
                 5862,
-                Some(NaiveDate::from_ymd(2013, 10, 25)),
+                Some(NaiveDate::from_ymd_opt(2013, 10, 25).unwrap()),
             ),
             (
                 b"75592896700003787000003389850761252543475984",
                 8967,
-                Some(NaiveDate::from_ymd(2022, 4, 26)),
+                Some(NaiveDate::from_ymd_opt(2022, 4, 26).unwrap()),
             ),
             (
                 b"23791672000003249052028269705944177105205220",
                 6720,
-                Some(NaiveDate::from_ymd(2016, 3, 1)),
+                Some(NaiveDate::from_ymd_opt(2016, 3, 1).unwrap()),
             ),
             (
                 b"23791672000003097902028060007024617500249000",
                 6720,
-                Some(NaiveDate::from_ymd(2016, 3, 1)),
+                Some(NaiveDate::from_ymd_opt(2016, 3, 1).unwrap()),
             ),
         ];
         for (barcode, expected_fator, expected_date) in barcodes {

@@ -8,10 +8,10 @@ const FATOR_VENC_2010: u16 = 4469;
 
 lazy_static! {
     /// Data base usada até 2025 (1000 == 03/07/2000)
-    static ref CURRENT_BASE_DATE: NaiveDate = NaiveDate::from_ymd(1997, 10, 7);
+    static ref CURRENT_BASE_DATE: NaiveDate = NaiveDate::from_ymd_opt(1997, 10, 7).unwrap();
 
     /// Data base usada de 2025 em diante (1000 == 22/02/2025)
-    static ref NEXT_BASE_DATE: NaiveDate = NaiveDate::from_ymd(2022, 5, 29);
+    static ref NEXT_BASE_DATE: NaiveDate = NaiveDate::from_ymd_opt(2022, 5, 29).unwrap();
 }
 
 pub fn fator_vencimento_to_date(fator: u16) -> Option<NaiveDate> {
@@ -32,7 +32,7 @@ pub fn fator_vencimento_to_date(fator: u16) -> Option<NaiveDate> {
 
 #[allow(dead_code)]
 pub fn date_to_fator_vencimento(date: NaiveDate) -> Option<u16> {
-    let base = if date < NaiveDate::from_ymd(2025, 2, 22) {
+    let base = if date < NaiveDate::from_ymd_opt(2025, 2, 22).unwrap() {
         *CURRENT_BASE_DATE
     } else {
         *NEXT_BASE_DATE
@@ -95,66 +95,66 @@ mod tests {
     fn convert_fator_vencimento_to_naive_date_correctly() {
         assert_eq!(
             fator_vencimento_to_date(FATOR_VENC_2010),
-            Some(NaiveDate::from_ymd(2010, 1, 1)),
+            Some(NaiveDate::from_ymd_opt(2010, 1, 1).unwrap()),
         );
         assert_eq!(
             fator_vencimento_to_date(FATOR_VENC_2010 + 1),
-            Some(NaiveDate::from_ymd(2010, 1, 2)),
+            Some(NaiveDate::from_ymd_opt(2010, 1, 2).unwrap()),
         );
         assert_eq!(
             fator_vencimento_to_date(FATOR_VENC_2010 - 1),
-            Some(NaiveDate::from_ymd(2034, 8, 22)),
+            Some(NaiveDate::from_ymd_opt(2034, 8, 22).unwrap()),
         );
         assert_eq!(
             fator_vencimento_to_date(4789),
-            Some(NaiveDate::from_ymd(2010, 11, 17)),
+            Some(NaiveDate::from_ymd_opt(2010, 11, 17).unwrap()),
         );
         assert_eq!(
             fator_vencimento_to_date(9999),
-            Some(NaiveDate::from_ymd(2025, 2, 21)),
+            Some(NaiveDate::from_ymd_opt(2025, 2, 21).unwrap()),
         );
         assert_eq!(
             fator_vencimento_to_date(1000),
-            Some(NaiveDate::from_ymd(2025, 2, 22)),
+            Some(NaiveDate::from_ymd_opt(2025, 2, 22).unwrap()),
         );
         assert_eq!(
             fator_vencimento_to_date(1002),
-            Some(NaiveDate::from_ymd(2025, 2, 24)),
+            Some(NaiveDate::from_ymd_opt(2025, 2, 24).unwrap()),
         );
         assert_eq!(
             fator_vencimento_to_date(1667),
-            Some(NaiveDate::from_ymd(2026, 12, 21)),
+            Some(NaiveDate::from_ymd_opt(2026, 12, 21).unwrap()),
         );
     }
 
     #[test]
     fn convert_naive_date_to_fator_vencimento_correctly() {
         assert_eq!(
-            date_to_fator_vencimento(NaiveDate::from_ymd(2010, 1, 2)),
+            date_to_fator_vencimento(NaiveDate::from_ymd_opt(2010, 1, 2).unwrap()),
             Some(FATOR_VENC_2010 + 1),
         );
         assert_eq!(
-            date_to_fator_vencimento(NaiveDate::from_ymd(2034, 8, 22)),
+            date_to_fator_vencimento(NaiveDate::from_ymd_opt(2034, 8, 22).unwrap()),
             Some(FATOR_VENC_2010 - 1),
         );
         assert_eq!(
-            date_to_fator_vencimento(NaiveDate::from_ymd(2010, 11, 17)),
+            date_to_fator_vencimento(NaiveDate::from_ymd_opt(2010, 11, 17).unwrap()),
             Some(4789),
         );
         assert_eq!(
-            date_to_fator_vencimento(NaiveDate::from_ymd(2025, 2, 21)),
+            date_to_fator_vencimento(NaiveDate::from_ymd_opt(2025, 2, 21).unwrap()),
             Some(9999),
         );
         assert_eq!(
-            date_to_fator_vencimento(NaiveDate::from_ymd(2025, 2, 22)),
+            date_to_fator_vencimento(NaiveDate::from_ymd_opt(2025, 2, 22).unwrap()),
             Some(1000),
         );
         assert_eq!(
-            date_to_fator_vencimento(NaiveDate::from_ymd(2025, 2, 24)),
+            date_to_fator_vencimento(NaiveDate::from_ymd_opt(2025, 2, 24).unwrap()),
             Some(1002),
         );
         assert_eq!(
-            date_to_fator_vencimento(NaiveDate::from_ymd(2026, 12, 21)),
+            date_to_fator_vencimento(NaiveDate::from_ymd_opt(2026, 12, 21).unwrap()),
             Some(1667),
         );
     }

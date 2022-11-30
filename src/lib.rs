@@ -93,7 +93,7 @@ mod tests {
             Boleto::Cobranca(cob) => {
                 assert_eq!(
                     cob.data_vencimento,
-                    Some(NaiveDate::from_ymd(2022, 5, 10))
+                    Some(NaiveDate::from_ymd_opt(2022, 5, 10).unwrap())
                 );
                 assert_eq!(cob.valor, Some(214.03));
             },
