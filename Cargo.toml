@@ -9,10 +9,9 @@ boleto-utils = { path = "boleto-utils/", version = "0.1.1"}
 serde = { version = "1.0", features = ["derive"] }
 
 [workspace.package]
-version = "0.1.1"
 edition = "2021"
 authors = ["Fernando Sávio <admin@fsavio.dev>"]
-description = "Utility library and CLI to parse brazilian payment slip (aka 'boleto') barcodes."
+description = "Utility library to parse brazilian payment slip (aka 'boleto') barcodes."
 readme = "README.md"
 homepage = "https://github.com/fernandosavio/boleto-utils/"
 repository = "https://github.com/fernandosavio/boleto-utils/"

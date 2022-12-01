@@ -1,7 +1,9 @@
 [package]
 name = "boleto-utils-cli"
-description.workspace = true
-version.workspace = true
+version = "0.1.2"
+description = "Utility CLI to parse brazilian payment slip (aka 'boleto') barcodes."
+readme = "README.md"
+keywords = ["boleto", "linha-digitavel", "cli", "utility", "util"]
 edition.workspace = true
 license.workspace = true
 homepage.workspace = true
@@ -10,7 +12,7 @@ repository.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-boleto-utils = { workspace = true }
+boleto-utils = { path = "../boleto-utils", version = "0.1.1"}
 
 clap = { version = "3.2.22", features = ["derive"] }
 serde_json = "1.0"
