@@ -5,6 +5,7 @@ default-members = ["boleto-utils", "boleto-utils-cli"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace.dependencies]
+boleto-utils = { path = "boleto-utils/", version = "0.1.1"}
 serde = { version = "1.0", features = ["derive"] }
 
 [workspace.package]
