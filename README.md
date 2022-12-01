@@ -7,7 +7,7 @@ This document will be written in brazilian portuguese because I believe anyone w
 
 ## Roadmap
 
-- [ ] Create a CLI;
+- [X] Create a CLI;
 - [ ] Create a NodeJS binding library;
 - [ ] Create a Python binding library;
 - [ ] Create WASM optimised version aimed to run on Browser;

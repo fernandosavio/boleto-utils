@@ -1,8 +1,8 @@
 
 [package]
 name = "boleto-utils"
-version = "0.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
 
 authors.workspace = true
 description.workspace = true
