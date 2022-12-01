@@ -81,18 +81,16 @@ fn main() -> Result<()> {
                     let dv = cod_barras.calculate_dv()?;
                     let dvs = cod_barras.calculate_dv_campos()?;
 
-                    // atualizando dv geral
-                    let mut correct_barcode = *cod_barras;
-                    correct_barcode[3] = dv + b'0';
-
                     // atualizando dv dos campos
-                    let mut correct_linha_digitavel = *linha_digitavel;
-                    correct_linha_digitavel[11] = dvs.0;
-                    correct_linha_digitavel[23] = dvs.1;
-                    correct_linha_digitavel[35] = dvs.2;
-                    correct_linha_digitavel[47] = dvs.3;
-                    // DV
-                    correct_linha_digitavel[3] = dv + b'0';
+                    let mut cod_barras = *cod_barras;
+                    cod_barras[3] = dv + b'0';
+
+                    let mut linha_digitavel = *linha_digitavel;
+                    linha_digitavel[11] = dvs.0;
+                    linha_digitavel[23] = dvs.1;
+                    linha_digitavel[35] = dvs.2;
+                    linha_digitavel[47] = dvs.3;
+                    linha_digitavel[3] = dv + b'0';
 
                     println!(
                         concat!(
@@ -106,8 +104,8 @@ fn main() -> Result<()> {
                         dvs.1 - b'0',
                         dvs.2 - b'0',
                         dvs.3 - b'0',
-                        unsafe { std::str::from_utf8_unchecked(&correct_barcode) },
-                        unsafe { std::str::from_utf8_unchecked(&correct_linha_digitavel) },
+                        unsafe { std::str::from_utf8_unchecked(cod_barras.as_ref()) },
+                        unsafe { std::str::from_utf8_unchecked(linha_digitavel.as_ref()) },
                     );
                 },
                 _ => {
@@ -129,16 +127,14 @@ fn main() -> Result<()> {
                     let dvs = cod_barras.calculate_dv_campos();
 
                     // atualizando dv dos campos
-                    let mut correct_barcode = *cod_barras;
-                    correct_barcode[4] = dv;
+                    let mut cod_barras = *cod_barras;
+                    cod_barras[4] = dv + b'0';
 
-                    let mut correct_linha_digitavel = *linha_digitavel;
-
-                    correct_linha_digitavel[9] = dvs.0;
-                    correct_linha_digitavel[20] = dvs.1;
-                    correct_linha_digitavel[31] = dvs.2;
-                    // DV
-                    correct_linha_digitavel[32] = dv;
+                    let mut linha_digitavel = *linha_digitavel;
+                    linha_digitavel[9] = dvs.0;
+                    linha_digitavel[20] = dvs.1;
+                    linha_digitavel[31] = dvs.2;
+                    linha_digitavel[32] = dv + b'0';
 
                     println!(
                         concat!(
@@ -151,8 +147,8 @@ fn main() -> Result<()> {
                         dvs.0 - b'0',
                         dvs.1 - b'0',
                         dvs.2 - b'0',
-                        unsafe { std::str::from_utf8_unchecked(&correct_barcode) },
-                        unsafe { std::str::from_utf8_unchecked(&correct_linha_digitavel) },
+                        unsafe { std::str::from_utf8_unchecked(cod_barras.as_ref()) },
+                        unsafe { std::str::from_utf8_unchecked(linha_digitavel.as_ref()) },
                     );
                 },
             }

@@ -539,7 +539,7 @@ mod tests {
     }
 
     #[test]
-    fn validate_converting_barcode_to_linha_digitavel() {
+    fn validate_convert_barcode_to_linha_digitavel() {
         let barcodes = [
             (b"81675555555555566667777777777777777777777777", b"816755555553555566667773777777777775777777777775"),
             (b"82665555555555566667777777777777777777777777", b"826655555553555566667773777777777775777777777775"),

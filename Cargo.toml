@@ -1,9 +1,13 @@
+[workspace]
+members = ["boleto-utils", "boleto-utils-cli"]
+default-members = ["boleto-utils", "boleto-utils-cli"]
 
-[package]
-name = "boleto-utils"
-version = "0.1.0"
-edition = "2021"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[workspace.dependencies]
+serde = { version = "1.0", features = ["derive"] }
+
+[workspace.package]
 authors = ["Fernando Sávio <admin@fsavio.dev>"]
 description = "Utility library to parse brazilian payment slip (aka 'boleto') barcodes."
 readme = "README.md"
@@ -12,22 +16,3 @@ repository = "https://github.com/fernandosavio/boleto-utils/"
 license = "MIT"
 keywords = ["barcode", "boleto", "codigo-de-barras", "linha-digitavel"]
 categories = ["parser-implementations"]
-
-exclude = [
-    "/data/*",
-    "/documents/*",
-]
-
-[workspace]
-members = ["cli"]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-thiserror = "1.0"
-chrono = { version = "0.4", features = ["serde"] }
-lazy_static = "1.4.0"
-csv = "1.1.6"
-phf = { version = "0.11", features = ["macros"] }
-
-serde = { version = "1.0", features = ["derive"] }

@@ -1,0 +1,27 @@
+
+[package]
+name = "boleto-utils"
+version = "0.1.0"
+edition = "2021"
+
+authors.workspace = true
+description.workspace = true
+readme.workspace = true
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+exclude = [
+    "/data/*",
+    "/documents/*",
+]
+
+[dependencies]
+thiserror = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+lazy_static = "1.4.0"
+csv = "1.1.6"
+phf = { version = "0.11", features = ["macros"] }
+serde = { workspace = true }
