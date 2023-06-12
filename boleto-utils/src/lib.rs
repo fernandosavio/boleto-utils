@@ -1,6 +1,7 @@
 mod utils;
 pub mod cobranca;
 pub mod arrecadacao;
+pub mod builder;
 mod instituicoes_bancarias;
 mod concessionarias;
 

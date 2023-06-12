@@ -30,7 +30,7 @@ pub fn fator_vencimento_to_date(fator: u16) -> Option<NaiveDate> {
     }
 }
 
-#[allow(dead_code)]
+
 pub fn date_to_fator_vencimento(date: NaiveDate) -> Option<u16> {
     let base = if date < NaiveDate::from_ymd_opt(2025, 2, 22).unwrap() {
         *CURRENT_BASE_DATE
