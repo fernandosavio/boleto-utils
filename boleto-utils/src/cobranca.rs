@@ -34,6 +34,10 @@ impl CodBarras {
         unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
 
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.0
+    }
+
     pub fn calculate_dv(&self) -> u8 {
         // Cria um iterator que itera sobre os caracteres do código de barras
         // exceto o dígito verificador
@@ -50,6 +54,10 @@ impl CodBarras {
             dv_utils::mod_10(self[24..34].iter()),
             dv_utils::mod_10(self[34..44].iter()),
         )
+    }
+
+    pub fn update_dv(&mut self) {
+        self.0[4] = self.calculate_dv() + b'0';
     }
 }
 
@@ -211,6 +219,18 @@ pub enum CodigoMoeda {
     Outras,
 }
 
+impl Into<u8> for CodigoMoeda{
+    fn into(self) -> u8 {
+        match self {
+            Self::Real => b'9',
+            Self::Outras => b'0',
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Clone, Copy)]
+pub struct CodBanco(pub u16);
+
 impl fmt::Display for CodigoMoeda {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", match self {
@@ -226,7 +246,7 @@ pub struct Cobranca {
     pub cod_barras: CodBarras,
     pub linha_digitavel: LinhaDigitavel,
     #[serde(skip)]
-    pub cod_banco: u16,
+    pub cod_banco: CodBanco,
     pub info_banco: InfoBanco,
     pub cod_moeda: CodigoMoeda,
     #[serde(skip)]
@@ -285,7 +305,7 @@ impl Cobranca {
             _ => return Err(BoletoError::InvalidLength),
         };
 
-        let cod_banco: u16 = u8_array_to_u16(&cod_barras[0..3]);
+        let cod_banco = CodBanco(u8_array_to_u16(&cod_barras[0..3]));
 
         let cod_moeda = match cod_barras[3] {
             b'9' => CodigoMoeda::Real,
@@ -332,8 +352,8 @@ impl Cobranca {
         Ok(Self {
             cod_barras,
             linha_digitavel,
-            cod_banco,
             info_banco: InfoBanco::get_by_id(cod_banco),
+            cod_banco,
             cod_moeda,
             fator_vencimento,
             digito_verificador,
@@ -362,7 +382,7 @@ mod tests {
                     panic!("Barcode should be considered valid. ({:?})", e);
                 }
                 Ok(result) => {
-                    assert_eq!(result.cod_banco, *expected)
+                    assert_eq!(result.cod_banco.0, *expected)
                 }
             };
         }

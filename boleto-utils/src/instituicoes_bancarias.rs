@@ -1,6 +1,7 @@
 extern crate csv;
 
 use std::fmt;
+use crate::cobranca::CodBanco;
 
 use phf::phf_map;
 use serde::Serialize;
@@ -266,19 +267,19 @@ static DEFAULT_NAME: &str = "Banco não encontrado";
 
 #[derive(Debug, Serialize)]
 pub struct InfoBanco {
-    id: u16,
+    id: CodBanco,
     nome: &'static str,
 }
 
 impl fmt::Display for InfoBanco {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[{:03}] {}", self.id, self.nome)
+        write!(f, "[{:03}] {}", self.id.0, self.nome)
     }
 }
 
 impl InfoBanco {
-    pub fn get_by_id(id: u16) -> InfoBanco {
-        match BANKS_INFO.get(&id) {
+    pub fn get_by_id(id: CodBanco) -> InfoBanco {
+        match BANKS_INFO.get(&id.0) {
             Some(nome) => InfoBanco { id, nome },
             None => InfoBanco { id, nome: DEFAULT_NAME },
         }
@@ -289,25 +290,25 @@ impl InfoBanco {
 mod tests {
     use crate::instituicoes_bancarias::{BANKS_INFO, DEFAULT_NAME};
 
-    use super::InfoBanco;
+    use super::{InfoBanco, CodBanco};
 
     #[test]
     fn should_load_and_get_info_bancos() {
-        let info = InfoBanco::get_by_id(0);
+        let info = InfoBanco::get_by_id(CodBanco(0));
         assert_eq!(info.nome, DEFAULT_NAME);
 
         println!("HashMap.len() == {}", BANKS_INFO.len());
 
-        let info = InfoBanco::get_by_id(1);
-        assert_eq!(info.id, 1);
+        let info = InfoBanco::get_by_id(CodBanco(1));
+        assert_eq!(info.id.0, 1);
         assert!(info.nome.contains("Banco do Brasil"));
 
-        let info = InfoBanco::get_by_id(341);
-        assert_eq!(info.id, 341);
+        let info = InfoBanco::get_by_id(CodBanco(341));
+        assert_eq!(info.id.0, 341);
         assert!(info.nome.contains("Itaú"));
 
-        let info = InfoBanco::get_by_id(655);
-        assert_eq!(info.id, 655);
+        let info = InfoBanco::get_by_id(CodBanco(655));
+        assert_eq!(info.id.0, 655);
         assert!(info.nome.contains("Votorantim"));
     }
 }

@@ -70,7 +70,7 @@ mod tests {
                 panic!("Barcode should be considered valid.");
             };
 
-            assert_eq!(result.cod_banco, *expected);
+            assert_eq!(result.cod_banco.0, *expected);
         }
     }
 
