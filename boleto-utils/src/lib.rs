@@ -68,12 +68,8 @@ impl Boleto {
     pub fn calculate_digito_verificador(value: &[u8]) -> Result<u8, BoletoError> {
         match value.first() {
             None => Err(BoletoError::InvalidLength),
-            Some(b'8') => {
-                CodBarrasArr::new(value)?.calculate_dv()
-            },
-            _ => {
-                CodBarrasCob::new(value)?.calculate_dv()
-            },
+            Some(b'8') => Ok(CodBarrasArr::new(value)?.calculate_dv()),
+            _ => Ok(CodBarrasCob::new(value)?.calculate_dv()),
         }
     }
 }

@@ -34,16 +34,14 @@ impl CodBarras {
         unsafe { std::str::from_utf8_unchecked(&self.0) }
     }
 
-    pub fn calculate_dv(&self) -> Result<u8, BoletoError> {
+    pub fn calculate_dv(&self) -> u8 {
         // Cria um iterator que itera sobre os caracteres do código de barras
         // exceto o dígito verificador
         let iterator_without_dv = self[..4]
             .iter()
             .chain(self[5..].iter());
 
-        Ok(
-            dv_utils::mod_11(iterator_without_dv).unwrap_or(b'1') - b'0'
-        )
+        dv_utils::mod_11(iterator_without_dv).unwrap_or(b'1') - b'0'
     }
 
     pub fn calculate_dv_campos(&self) -> (u8, u8, u8) {
@@ -311,7 +309,7 @@ impl Cobranca {
         };
 
         let digito_verificador: u8 = {
-            let dv = cod_barras.calculate_dv()?;
+            let dv = cod_barras.calculate_dv();
 
             if dv != cod_barras[4] - b'0' {
                 return Err(BoletoError::InvalidDigitoVerificador);
@@ -526,7 +524,7 @@ mod tests {
 
         for (barcode, expected) in barcodes.iter() {
             assert_eq!(
-                CodBarras::new(*barcode).unwrap().calculate_dv().unwrap(),
+                CodBarras::new(*barcode).unwrap().calculate_dv(),
                 *expected,
             );
         }

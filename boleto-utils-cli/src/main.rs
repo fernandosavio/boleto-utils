@@ -78,8 +78,8 @@ fn main() -> Result<()> {
                         },
                         _ => return Err(anyhow::Error::new(BoletoError::InvalidLength)),
                     };
-                    let dv = cod_barras.calculate_dv()?;
-                    let dvs = cod_barras.calculate_dv_campos()?;
+                    let dv = cod_barras.calculate_dv();
+                    let dvs = cod_barras.calculate_dv_campos();
 
                     // atualizando dv dos campos
                     let mut cod_barras = *cod_barras;
@@ -123,7 +123,7 @@ fn main() -> Result<()> {
                         _ => return Err(anyhow::Error::new(BoletoError::InvalidLength)),
                     };
 
-                    let dv = cod_barras.calculate_dv()?;
+                    let dv = cod_barras.calculate_dv();
                     let dvs = cod_barras.calculate_dv_campos();
 
                     // atualizando dv dos campos
