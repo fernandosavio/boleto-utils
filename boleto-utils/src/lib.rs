@@ -10,7 +10,7 @@ use thiserror::Error;
 use arrecadacao::CodBarras as CodBarrasArr;
 use cobranca::CodBarras as CodBarrasCob;
 
-use crate::cobranca::CobrancaInfo;
+use crate::cobranca::Cobranca;
 use crate::arrecadacao::Arrecadacao;
 
 
@@ -45,7 +45,7 @@ pub enum Boleto {
     #[serde(rename = "arrecadacao")]
     Arrecadacao(Arrecadacao),
     #[serde(rename = "cobranca")]
-    Cobranca(CobrancaInfo),
+    Cobranca(Cobranca),
 }
 
 impl std::fmt::Display for Boleto {
@@ -62,7 +62,7 @@ impl Boleto {
         match value.first() {
             None => Err(BoletoError::InvalidLength),
             Some(b'8') => Ok(Boleto::Arrecadacao(Arrecadacao::new(value)?)),
-            _ => Ok(Boleto::Cobranca(CobrancaInfo::new(value)?)),
+            _ => Ok(Boleto::Cobranca(Cobranca::new(value)?)),
         }
     }
 

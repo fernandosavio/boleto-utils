@@ -6,11 +6,11 @@ use serde::Serialize;
 use crate::utils::{dv_utils, fator_vencimento_to_date, u8_array_to_u16};
 use crate::BoletoError;
 
-pub struct CodBarras([u8; CobrancaInfo::COD_BARRAS_LENGTH]);
+pub struct CodBarras([u8; Cobranca::COD_BARRAS_LENGTH]);
 
 impl CodBarras {
     pub fn new(input: &[u8]) -> Result<Self, BoletoError> {
-        if input.len() != CobrancaInfo::COD_BARRAS_LENGTH {
+        if input.len() != Cobranca::COD_BARRAS_LENGTH {
             return Err(BoletoError::InvalidLength);
         }
 
@@ -23,7 +23,7 @@ impl CodBarras {
             return Err(BoletoError::NumbersOnly);
         }
 
-        let mut cod_barras = [0u8; CobrancaInfo::COD_BARRAS_LENGTH];
+        let mut cod_barras = [0u8; Cobranca::COD_BARRAS_LENGTH];
         cod_barras.copy_from_slice(input);
 
         Ok(Self(cod_barras))
@@ -72,7 +72,7 @@ impl From<&LinhaDigitavel> for CodBarras {
         // AAABKUUUUVVVVVVVVVVCCCCCDDDDDDDDDDEEEEEEEEEE
 
         let LinhaDigitavel(src) = linha_digitavel;
-        let mut barcode = [0_u8; CobrancaInfo::COD_BARRAS_LENGTH];
+        let mut barcode = [0_u8; Cobranca::COD_BARRAS_LENGTH];
 
         barcode[0..4].copy_from_slice(&src[0..4]);
         barcode[4..19].copy_from_slice(&src[32..47]);
@@ -99,7 +99,7 @@ impl fmt::Display for CodBarras {
 }
 
 impl std::ops::Deref for CodBarras {
-    type Target = [u8; CobrancaInfo::COD_BARRAS_LENGTH];
+    type Target = [u8; Cobranca::COD_BARRAS_LENGTH];
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -114,11 +114,11 @@ impl Serialize for CodBarras {
     }
 }
 
-pub struct LinhaDigitavel([u8; CobrancaInfo::LINHA_DIGITAVEL_LENGTH]);
+pub struct LinhaDigitavel([u8; Cobranca::LINHA_DIGITAVEL_LENGTH]);
 
 impl LinhaDigitavel {
     pub fn new(input: &[u8]) -> Result<Self, BoletoError> {
-        if input.len() != CobrancaInfo::LINHA_DIGITAVEL_LENGTH {
+        if input.len() != Cobranca::LINHA_DIGITAVEL_LENGTH {
             return Err(BoletoError::InvalidLength);
         }
 
@@ -131,7 +131,7 @@ impl LinhaDigitavel {
             return Err(BoletoError::NumbersOnly);
         }
 
-        let mut linha_digitavel = [0u8; CobrancaInfo::LINHA_DIGITAVEL_LENGTH];
+        let mut linha_digitavel = [0u8; Cobranca::LINHA_DIGITAVEL_LENGTH];
         linha_digitavel.copy_from_slice(input);
 
         Ok(Self(linha_digitavel))
@@ -155,7 +155,7 @@ impl From<&CodBarras> for LinhaDigitavel {
 
         let CodBarras(src) = cod_barras;
 
-        let mut digitable_line = [0_u8; CobrancaInfo::LINHA_DIGITAVEL_LENGTH];
+        let mut digitable_line = [0_u8; Cobranca::LINHA_DIGITAVEL_LENGTH];
         let (dv1, dv2, dv3) = cod_barras.calculate_dv_campos();
 
         // Campo 1
@@ -196,7 +196,7 @@ impl fmt::Display for LinhaDigitavel {
 }
 
 impl std::ops::Deref for LinhaDigitavel {
-    type Target = [u8; CobrancaInfo::LINHA_DIGITAVEL_LENGTH];
+    type Target = [u8; Cobranca::LINHA_DIGITAVEL_LENGTH];
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -247,7 +247,7 @@ impl fmt::Display for CodBanco {
 
 #[derive(Debug, Serialize)]
 #[serde(rename = "cobranca")]
-pub struct CobrancaInfo {
+pub struct Cobranca {
     pub cod_barras: CodBarras,
     pub linha_digitavel: LinhaDigitavel,
     pub cod_banco: CodBanco,
@@ -260,7 +260,7 @@ pub struct CobrancaInfo {
     pub valor: Option<f64>,
 }
 
-impl fmt::Display for CobrancaInfo {
+impl fmt::Display for Cobranca {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -290,7 +290,7 @@ impl fmt::Display for CobrancaInfo {
 }
 
 
-impl CobrancaInfo {
+impl Cobranca {
     pub const COD_BARRAS_LENGTH: usize = 44;
     pub const LINHA_DIGITAVEL_LENGTH: usize = 47;
 
@@ -379,7 +379,7 @@ mod tests {
             (b"00091444455555555556666666666666666666666666", 0),
         ];
         for (barcode, expected) in barcodes.iter() {
-            match CobrancaInfo::new(barcode) {
+            match Cobranca::new(barcode) {
                 Err(e) => {
                     panic!("Barcode should be considered valid. ({:?})", e);
                 }
@@ -392,7 +392,7 @@ mod tests {
 
     #[test]
     fn get_cod_moeda_correctly() {
-        match CobrancaInfo::new(b"11191444455555555556666666666666666666666666") {
+        match Cobranca::new(b"11191444455555555556666666666666666666666666") {
             Ok(result) => {
                 assert!(
                     matches!(result.cod_moeda, CodigoMoeda::Real),
@@ -404,7 +404,7 @@ mod tests {
             }
         };
 
-        match CobrancaInfo::new(b"11105444455555555556666666666666666666666666") {
+        match Cobranca::new(b"11105444455555555556666666666666666666666666") {
             Ok(result) => {
                 assert!(
                     matches!(result.cod_moeda, CodigoMoeda::Outras),
@@ -478,7 +478,7 @@ mod tests {
             ),
         ];
         for (barcode, expected_fator, expected_date) in barcodes {
-            match CobrancaInfo::new(barcode.as_slice()) {
+            match Cobranca::new(barcode.as_slice()) {
                 Err(e) => {
                     panic!("Barcode should be considered valid. ({:?})", e);
                 },
@@ -491,14 +491,14 @@ mod tests {
 
         assert!(
             matches!(
-                CobrancaInfo::new(b"11196000155555555556666666666666666666666666".as_slice()),
+                Cobranca::new(b"11196000155555555556666666666666666666666666".as_slice()),
                 Err(BoletoError::InvalidFatorVencimento),
             )
         );
 
         assert!(
             matches!(
-                CobrancaInfo::new(b"11196099955555555556666666666666666666666666".as_slice()),
+                Cobranca::new(b"11196099955555555556666666666666666666666666".as_slice()),
                 Err(BoletoError::InvalidFatorVencimento),
             )
         );
@@ -519,7 +519,7 @@ mod tests {
             (b"11193444400000000006666666666666666666666666", None),
         ];
         for (barcode, expected) in barcodes.iter() {
-            match CobrancaInfo::new(barcode.as_slice()) {
+            match Cobranca::new(barcode.as_slice()) {
                 Err(e) => {
                     panic!("Barcode should be considered valid. ({:?}): {:?}", e, barcode);
                 }
