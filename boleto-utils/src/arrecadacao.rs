@@ -314,7 +314,7 @@ impl TryFrom<u8> for TipoValor {
 
 #[derive(Debug, Serialize)]
 pub enum Convenio {
-    Carne([u8; 8]), // Ignorando cadastro de carnês por falta de dados
+    Carne([u8; 8]),
     Outros(u16),
 }
 
