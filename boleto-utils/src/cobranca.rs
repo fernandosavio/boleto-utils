@@ -5,18 +5,17 @@ use serde::Serialize;
 
 use crate::utils::{dv_utils, fator_vencimento_to_date, u8_array_to_u16};
 use crate::BoletoError;
-use crate::instituicoes_bancarias::InfoBanco;
 
-pub struct CodBarras([u8; Cobranca::COD_BARRAS_LENGTH]);
+pub struct CodBarras([u8; CobrancaInfo::COD_BARRAS_LENGTH]);
 
 impl CodBarras {
     pub fn new(input: &[u8]) -> Result<Self, BoletoError> {
-        if input.first() == Some(&b'8') {
-            return Err(BoletoError::InvalidArrecadacaoBarcode);
+        if input.len() != CobrancaInfo::COD_BARRAS_LENGTH {
+            return Err(BoletoError::InvalidLength);
         }
 
-        if input.len() != Cobranca::COD_BARRAS_LENGTH {
-            return Err(BoletoError::InvalidLength);
+        if input.first() == Some(&b'8') {
+            return Err(BoletoError::InvalidArrecadacaoBarcode);
         }
 
         let only_numbers = input.iter().all(|c| c.is_ascii_digit());
@@ -24,7 +23,7 @@ impl CodBarras {
             return Err(BoletoError::NumbersOnly);
         }
 
-        let mut cod_barras = [0u8; Cobranca::COD_BARRAS_LENGTH];
+        let mut cod_barras = [0u8; CobrancaInfo::COD_BARRAS_LENGTH];
         cod_barras.copy_from_slice(input);
 
         Ok(Self(cod_barras))
@@ -73,7 +72,7 @@ impl From<&LinhaDigitavel> for CodBarras {
         // AAABKUUUUVVVVVVVVVVCCCCCDDDDDDDDDDEEEEEEEEEE
 
         let LinhaDigitavel(src) = linha_digitavel;
-        let mut barcode = [0_u8; Cobranca::COD_BARRAS_LENGTH];
+        let mut barcode = [0_u8; CobrancaInfo::COD_BARRAS_LENGTH];
 
         barcode[0..4].copy_from_slice(&src[0..4]);
         barcode[4..19].copy_from_slice(&src[32..47]);
@@ -100,7 +99,7 @@ impl fmt::Display for CodBarras {
 }
 
 impl std::ops::Deref for CodBarras {
-    type Target = [u8; Cobranca::COD_BARRAS_LENGTH];
+    type Target = [u8; CobrancaInfo::COD_BARRAS_LENGTH];
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -115,16 +114,16 @@ impl Serialize for CodBarras {
     }
 }
 
-pub struct LinhaDigitavel([u8; Cobranca::LINHA_DIGITAVEL_LENGTH]);
+pub struct LinhaDigitavel([u8; CobrancaInfo::LINHA_DIGITAVEL_LENGTH]);
 
 impl LinhaDigitavel {
     pub fn new(input: &[u8]) -> Result<Self, BoletoError> {
-        if input.first() == Some(&b'8') {
-            return Err(BoletoError::InvalidArrecadacaoBarcode);
+        if input.len() != CobrancaInfo::LINHA_DIGITAVEL_LENGTH {
+            return Err(BoletoError::InvalidLength);
         }
 
-        if input.len() != Cobranca::LINHA_DIGITAVEL_LENGTH {
-            return Err(BoletoError::InvalidLength);
+        if input.first() == Some(&b'8') {
+            return Err(BoletoError::InvalidArrecadacaoBarcode);
         }
 
         let only_numbers = input.iter().all(|c| c.is_ascii_digit());
@@ -132,7 +131,7 @@ impl LinhaDigitavel {
             return Err(BoletoError::NumbersOnly);
         }
 
-        let mut linha_digitavel = [0u8; Cobranca::LINHA_DIGITAVEL_LENGTH];
+        let mut linha_digitavel = [0u8; CobrancaInfo::LINHA_DIGITAVEL_LENGTH];
         linha_digitavel.copy_from_slice(input);
 
         Ok(Self(linha_digitavel))
@@ -156,7 +155,7 @@ impl From<&CodBarras> for LinhaDigitavel {
 
         let CodBarras(src) = cod_barras;
 
-        let mut digitable_line = [0_u8; Cobranca::LINHA_DIGITAVEL_LENGTH];
+        let mut digitable_line = [0_u8; CobrancaInfo::LINHA_DIGITAVEL_LENGTH];
         let (dv1, dv2, dv3) = cod_barras.calculate_dv_campos();
 
         // Campo 1
@@ -197,7 +196,7 @@ impl fmt::Display for LinhaDigitavel {
 }
 
 impl std::ops::Deref for LinhaDigitavel {
-    type Target = [u8; Cobranca::LINHA_DIGITAVEL_LENGTH];
+    type Target = [u8; CobrancaInfo::LINHA_DIGITAVEL_LENGTH];
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -228,9 +227,6 @@ impl Into<u8> for CodigoMoeda{
     }
 }
 
-#[derive(Debug, Serialize, Clone, Copy)]
-pub struct CodBanco(pub u16);
-
 impl fmt::Display for CodigoMoeda {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", match self {
@@ -240,14 +236,21 @@ impl fmt::Display for CodigoMoeda {
     }
 }
 
+#[derive(Debug, Serialize, Clone, Copy)]
+pub struct CodBanco(pub u16);
+
+impl fmt::Display for CodBanco {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:03}", self.0)
+    }
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename = "cobranca")]
-pub struct Cobranca {
+pub struct CobrancaInfo {
     pub cod_barras: CodBarras,
     pub linha_digitavel: LinhaDigitavel,
-    #[serde(skip)]
     pub cod_banco: CodBanco,
-    pub info_banco: InfoBanco,
     pub cod_moeda: CodigoMoeda,
     #[serde(skip)]
     pub digito_verificador: u8,
@@ -257,7 +260,7 @@ pub struct Cobranca {
     pub valor: Option<f64>,
 }
 
-impl fmt::Display for Cobranca {
+impl fmt::Display for CobrancaInfo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -272,7 +275,7 @@ impl fmt::Display for Cobranca {
             ),
             self.cod_barras,
             self.linha_digitavel,
-            self.info_banco,
+            self.cod_banco,
             self.cod_moeda,
             match self.valor {
                 Some(v) => format!("{v:.2}"),
@@ -287,7 +290,7 @@ impl fmt::Display for Cobranca {
 }
 
 
-impl Cobranca {
+impl CobrancaInfo {
     pub const COD_BARRAS_LENGTH: usize = 44;
     pub const LINHA_DIGITAVEL_LENGTH: usize = 47;
 
@@ -332,7 +335,7 @@ impl Cobranca {
             let dv = cod_barras.calculate_dv();
 
             if dv != cod_barras[4] - b'0' {
-                return Err(BoletoError::InvalidDigitoVerificador);
+                return Err(BoletoError::InvalidDigitoVerificadorGeral);
             }
 
             dv
@@ -345,14 +348,13 @@ impl Cobranca {
                 || linha_digitavel[20] != dvs.1
                 || linha_digitavel[31] != dvs.2
             {
-                return Err(BoletoError::InvalidDigitoVerificador);
+                return Err(BoletoError::InvalidDigitoVerificadorCampos);
             }
         };
 
         Ok(Self {
             cod_barras,
             linha_digitavel,
-            info_banco: InfoBanco::get_by_id(cod_banco),
             cod_banco,
             cod_moeda,
             fator_vencimento,
@@ -377,7 +379,7 @@ mod tests {
             (b"00091444455555555556666666666666666666666666", 0),
         ];
         for (barcode, expected) in barcodes.iter() {
-            match Cobranca::new(barcode) {
+            match CobrancaInfo::new(barcode) {
                 Err(e) => {
                     panic!("Barcode should be considered valid. ({:?})", e);
                 }
@@ -390,7 +392,7 @@ mod tests {
 
     #[test]
     fn get_cod_moeda_correctly() {
-        match Cobranca::new(b"11191444455555555556666666666666666666666666") {
+        match CobrancaInfo::new(b"11191444455555555556666666666666666666666666") {
             Ok(result) => {
                 assert!(
                     matches!(result.cod_moeda, CodigoMoeda::Real),
@@ -402,7 +404,7 @@ mod tests {
             }
         };
 
-        match Cobranca::new(b"11105444455555555556666666666666666666666666") {
+        match CobrancaInfo::new(b"11105444455555555556666666666666666666666666") {
             Ok(result) => {
                 assert!(
                     matches!(result.cod_moeda, CodigoMoeda::Outras),
@@ -476,7 +478,7 @@ mod tests {
             ),
         ];
         for (barcode, expected_fator, expected_date) in barcodes {
-            match Cobranca::new(barcode.as_slice()) {
+            match CobrancaInfo::new(barcode.as_slice()) {
                 Err(e) => {
                     panic!("Barcode should be considered valid. ({:?})", e);
                 },
@@ -489,14 +491,14 @@ mod tests {
 
         assert!(
             matches!(
-                Cobranca::new(b"11196000155555555556666666666666666666666666".as_slice()),
+                CobrancaInfo::new(b"11196000155555555556666666666666666666666666".as_slice()),
                 Err(BoletoError::InvalidFatorVencimento),
             )
         );
 
         assert!(
             matches!(
-                Cobranca::new(b"11196099955555555556666666666666666666666666".as_slice()),
+                CobrancaInfo::new(b"11196099955555555556666666666666666666666666".as_slice()),
                 Err(BoletoError::InvalidFatorVencimento),
             )
         );
@@ -517,7 +519,7 @@ mod tests {
             (b"11193444400000000006666666666666666666666666", None),
         ];
         for (barcode, expected) in barcodes.iter() {
-            match Cobranca::new(barcode.as_slice()) {
+            match CobrancaInfo::new(barcode.as_slice()) {
                 Err(e) => {
                     panic!("Barcode should be considered valid. ({:?}): {:?}", e, barcode);
                 }

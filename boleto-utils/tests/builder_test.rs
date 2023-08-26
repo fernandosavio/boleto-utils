@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod test {
-    use boleto_utils::cobranca::{Cobranca, CodigoMoeda, CodBanco};
+    use boleto_utils::cobranca::{CobrancaInfo, CodigoMoeda, CodBanco};
     use chrono::NaiveDate;
 
     #[test]
     fn basic_functionality() {
-        let builder = Cobranca::builder();
+        let builder = CobrancaInfo::builder();
 
         let result = builder
             .cod_moeda(CodigoMoeda::Real)

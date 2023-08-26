@@ -1,7 +1,7 @@
 
 [package]
 name = "boleto-utils"
-version = "0.1.1"
+version = "0.1.2"
 edition.workspace = true
 
 authors.workspace = true
@@ -22,6 +22,5 @@ exclude = [
 thiserror = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 lazy_static = "1.4.0"
-csv = "1.1.6"
-phf = { version = "0.11", features = ["macros"] }
+csv = "1.2.2"
 serde = { workspace = true }

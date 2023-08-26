@@ -1,7 +1,7 @@
-use crate::{cobranca::{Cobranca, CodBarras, CodigoMoeda, CodBanco}, utils::date_to_fator_vencimento};
+use crate::{cobranca::{CobrancaInfo, CodBarras, CodigoMoeda, CodBanco}, utils::date_to_fator_vencimento};
 use chrono::NaiveDate;
 
-impl Cobranca {
+impl CobrancaInfo {
     pub fn builder() -> CobrancaBuilder<NoCodBanco, NoCodMoeda> {
         CobrancaBuilder::new()
     }
@@ -74,7 +74,7 @@ impl<CB, CM> CobrancaBuilder<CB, CM> {
 }
 
 impl CobrancaBuilder<CodBanco, CodigoMoeda> {
-    pub fn build(self) -> Cobranca {
+    pub fn build(self) -> CobrancaInfo {
         let cobranca = {
             let mut result = [b'0'; 44];
 
@@ -101,6 +101,6 @@ impl CobrancaBuilder<CodBanco, CodigoMoeda> {
             cobranca
         };
 
-        Cobranca::new(cobranca.as_bytes()).unwrap()
+        CobrancaInfo::new(cobranca.as_bytes()).unwrap()
     }
 }

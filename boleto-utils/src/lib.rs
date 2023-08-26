@@ -2,8 +2,6 @@ mod utils;
 pub mod cobranca;
 pub mod arrecadacao;
 pub mod builder;
-mod instituicoes_bancarias;
-mod concessionarias;
 
 use serde::Serialize;
 
@@ -12,7 +10,7 @@ use thiserror::Error;
 use arrecadacao::CodBarras as CodBarrasArr;
 use cobranca::CodBarras as CodBarrasCob;
 
-use crate::cobranca::Cobranca;
+use crate::cobranca::CobrancaInfo;
 use crate::arrecadacao::Arrecadacao;
 
 
@@ -24,8 +22,10 @@ pub enum BoletoError {
     InvalidLength,
     #[error("código moeda inválido")]
     InvalidCodigoMoeda,
-    #[error("dígito verificador inválido")]
-    InvalidDigitoVerificador,
+    #[error("dígito verificador geral inválido")]
+    InvalidDigitoVerificadorGeral,
+    #[error("dígito verificador de campos inválido")]
+    InvalidDigitoVerificadorCampos,
     #[error("código de barras de cobrança inválido")]
     InvalidCobrancaBarcode,
     #[error("fator de vencimento inválido")]
@@ -45,7 +45,7 @@ pub enum Boleto {
     #[serde(rename = "arrecadacao")]
     Arrecadacao(Arrecadacao),
     #[serde(rename = "cobranca")]
-    Cobranca(Cobranca),
+    Cobranca(CobrancaInfo),
 }
 
 impl std::fmt::Display for Boleto {
@@ -62,7 +62,7 @@ impl Boleto {
         match value.first() {
             None => Err(BoletoError::InvalidLength),
             Some(b'8') => Ok(Boleto::Arrecadacao(Arrecadacao::new(value)?)),
-            _ => Ok(Boleto::Cobranca(Cobranca::new(value)?)),
+            _ => Ok(Boleto::Cobranca(CobrancaInfo::new(value)?)),
         }
     }
 
