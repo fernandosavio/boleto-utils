@@ -1,8 +1,7 @@
 mod utils;
 pub mod cobranca;
 pub mod arrecadacao;
-mod instituicoes_bancarias;
-mod concessionarias;
+pub mod builder;
 
 use serde::Serialize;
 
@@ -23,8 +22,10 @@ pub enum BoletoError {
     InvalidLength,
     #[error("código moeda inválido")]
     InvalidCodigoMoeda,
-    #[error("dígito verificador inválido")]
-    InvalidDigitoVerificador,
+    #[error("dígito verificador geral inválido")]
+    InvalidDigitoVerificadorGeral,
+    #[error("dígito verificador de campos inválido")]
+    InvalidDigitoVerificadorCampos,
     #[error("código de barras de cobrança inválido")]
     InvalidCobrancaBarcode,
     #[error("fator de vencimento inválido")]
@@ -68,12 +69,8 @@ impl Boleto {
     pub fn calculate_digito_verificador(value: &[u8]) -> Result<u8, BoletoError> {
         match value.first() {
             None => Err(BoletoError::InvalidLength),
-            Some(b'8') => {
-                CodBarrasArr::new(value)?.calculate_dv()
-            },
-            _ => {
-                CodBarrasCob::new(value)?.calculate_dv()
-            },
+            Some(b'8') => Ok(CodBarrasArr::new(value)?.calculate_dv()),
+            _ => Ok(CodBarrasCob::new(value)?.calculate_dv()),
         }
     }
 }

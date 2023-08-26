@@ -1,9 +1,9 @@
 use std::convert::{From, TryFrom};
 use std::fmt;
+use std::str::from_utf8_unchecked;
 
 use serde::Serialize;
 
-use crate::concessionarias::InfoConvenio;
 use crate::utils::{self, dv_utils};
 use crate::BoletoError;
 
@@ -44,34 +44,36 @@ impl CodBarras {
         Segmento::try_from(self[1]).map_err(|_| BoletoError::InvalidSegmento)
     }
 
-    pub fn calculate_dv(&self) -> Result<u8, BoletoError> {
+    pub fn calculate_dv(&self) -> u8 {
         // Cria um iterator que itera sobre os caracteres do código de barras
         // exceto o dígito verificador
         let iterator_without_dv = self[..3].iter().chain(self[4..].iter());
 
-        Ok(match self.tipo_valor()? {
-            TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10 => {
-                dv_utils::mod_10(iterator_without_dv)
+        (
+            match self.tipo_valor().unwrap() {
+                TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10 => {
+                    dv_utils::mod_10(iterator_without_dv)
+                }
+                _ => dv_utils::mod_11(iterator_without_dv).unwrap_or(b'0'),
             }
-            _ => dv_utils::mod_11(iterator_without_dv).unwrap_or(b'0'),
-        } - b'0')
+        ) - b'0'
     }
 
-    pub fn calculate_dv_campos(&self) -> Result<(u8, u8, u8, u8), BoletoError> {
-        match TipoValor::try_from(self[2]) {
-            Err(_) => Err(BoletoError::InvalidTipoValor),
-            Ok(TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10) => Ok((
+    pub fn calculate_dv_campos(&self) -> (u8, u8, u8, u8) {
+        if let TipoValor::QtdeMoedaMod10 | TipoValor::ValorReaisMod10 = self.tipo_valor().unwrap() {
+            (
                 dv_utils::mod_10(self[0..11].iter()),
                 dv_utils::mod_10(self[11..22].iter()),
                 dv_utils::mod_10(self[22..33].iter()),
                 dv_utils::mod_10(self[33..44].iter()),
-            )),
-            _ => Ok((
+            )
+        } else {
+            (
                 dv_utils::mod_11(self[0..11].iter()).unwrap_or(b'0'),
                 dv_utils::mod_11(self[11..22].iter()).unwrap_or(b'0'),
                 dv_utils::mod_11(self[22..33].iter()).unwrap_or(b'0'),
                 dv_utils::mod_11(self[33..44].iter()).unwrap_or(b'0'),
-            )),
+            )
         }
     }
 }
@@ -191,7 +193,7 @@ impl TryFrom<&CodBarras> for LinhaDigitavel {
 
         let CodBarras(src) = cod_barras;
         let mut digitable_line = [0_u8; 48];
-        let (dv1, dv2, dv3, dv4) = cod_barras.calculate_dv_campos()?;
+        let (dv1, dv2, dv3, dv4) = cod_barras.calculate_dv_campos();
 
         // Campo 1
         digitable_line[0..11].copy_from_slice(&src[0..11]);
@@ -256,7 +258,7 @@ pub enum Segmento {
 }
 
 impl TryFrom<u8> for Segmento {
-    type Error = ();
+    type Error = BoletoError;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
@@ -268,7 +270,7 @@ impl TryFrom<u8> for Segmento {
             b'6' => Ok(Self::Carnes),
             b'7' => Ok(Self::MultasTransito),
             b'9' => Ok(Self::ExclusivoDoBanco),
-            _ => Err(()),
+            _ => Err(BoletoError::InvalidSegmento),
         }
     }
 }
@@ -312,8 +314,17 @@ impl TryFrom<u8> for TipoValor {
 
 #[derive(Debug, Serialize)]
 pub enum Convenio {
-    Carne, // Ignorando cadastro de carnês por falta de dados
-    Outros(Option<&'static InfoConvenio>),
+    Carne([u8; 8]),
+    Outros(u16),
+}
+
+impl fmt::Display for Convenio {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Outros(numero_cadastro) => write!(f, "{:04}", numero_cadastro),
+            Self::Carne(cadastro) => write!(f, "{}", unsafe { from_utf8_unchecked(cadastro) }),
+        }
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -337,11 +348,13 @@ impl fmt::Display for Arrecadacao {
                 "Código de barras: {}\n",
                 " Linha digitável: {}\n",
                 "        Segmento: {}\n",
+                "        Convênio: {}\n",
                 "           Valor: {}",
             ),
             self.cod_barras,
             self.linha_digitavel,
             self.segmento,
+            self.convenio,
             match self.valor {
                 Some(v) =>format!("{:.2}", v),
                 None => "Sem valor informado".to_owned()
@@ -373,31 +386,32 @@ impl Arrecadacao {
         let segmento: Segmento = cod_barras.segmento()?;
 
         let convenio = match segmento {
-            Segmento::Carnes => Convenio::Carne,
-            _ => Convenio::Outros(InfoConvenio::get(
-                &segmento,
-                utils::u8_array_to_u16(&cod_barras[15..19]),
-            )),
+            Segmento::Carnes => {
+                let mut cadastro = [0u8; 8];
+                cadastro.clone_from_slice(&cod_barras[15..23]);
+                Convenio::Carne(cadastro)
+            },
+            _ => Convenio::Outros(utils::u8_array_to_u16(&cod_barras[15..19])),
         };
 
         let digito_verificador = {
-            let dv = cod_barras.calculate_dv()?;
+            let dv = cod_barras.calculate_dv();
 
             if dv != cod_barras[3] - b'0' {
-                return Err(BoletoError::InvalidDigitoVerificador);
+                return Err(BoletoError::InvalidDigitoVerificadorGeral);
             }
             dv
         };
 
         {
-            let correct_dvs = cod_barras.calculate_dv_campos()?;
+            let correct_dvs = cod_barras.calculate_dv_campos();
 
             if linha_digitavel[11] != correct_dvs.0
                 || linha_digitavel[23] != correct_dvs.1
                 || linha_digitavel[35] != correct_dvs.2
                 || linha_digitavel[47] != correct_dvs.3
             {
-                return Err(BoletoError::InvalidDigitoVerificador);
+                return Err(BoletoError::InvalidDigitoVerificadorCampos);
             }
         };
 
@@ -505,7 +519,7 @@ mod tests {
         assert!(matches!(Arrecadacao::new(b"83655555555555566667777777777777777777777777").unwrap().convenio, Convenio::Outros(_)));
         assert!(matches!(Arrecadacao::new(b"84645555555555566667777777777777777777777777").unwrap().convenio, Convenio::Outros(_)));
         assert!(matches!(Arrecadacao::new(b"85635555555555566667777777777777777777777777").unwrap().convenio, Convenio::Outros(_)));
-        assert!(matches!(Arrecadacao::new(b"86625555555555566667777777777777777777777777").unwrap().convenio, Convenio::Carne));
+        assert!(matches!(Arrecadacao::new(b"86625555555555566667777777777777777777777777").unwrap().convenio, Convenio::Carne(_)));
         assert!(matches!(Arrecadacao::new(b"87615555555555566667777777777777777777777777").unwrap().convenio, Convenio::Outros(_)));
         assert!(matches!(Arrecadacao::new(b"88605555555555566667777777777777777777777777"), Err(BoletoError::InvalidSegmento)));
         assert!(matches!(Arrecadacao::new(b"89695555555555566667777777777777777777777777").unwrap().convenio, Convenio::Outros(_)));
@@ -515,7 +529,7 @@ mod tests {
         assert!(matches!(Arrecadacao::new(b"836555555553555566667773777777777775777777777775").unwrap().convenio, Convenio::Outros(_)));
         assert!(matches!(Arrecadacao::new(b"846455555553555566667773777777777775777777777775").unwrap().convenio, Convenio::Outros(_)));
         assert!(matches!(Arrecadacao::new(b"856355555553555566667773777777777775777777777775").unwrap().convenio, Convenio::Outros(_)));
-        assert!(matches!(Arrecadacao::new(b"866255555553555566667773777777777775777777777775").unwrap().convenio, Convenio::Carne));
+        assert!(matches!(Arrecadacao::new(b"866255555553555566667773777777777775777777777775").unwrap().convenio, Convenio::Carne(_)));
         assert!(matches!(Arrecadacao::new(b"876155555553555566667773777777777775777777777775").unwrap().convenio, Convenio::Outros(_)));
         assert!(matches!(Arrecadacao::new(b"886055555553555566667773777777777775777777777775"), Err(BoletoError::InvalidSegmento)));
         assert!(matches!(Arrecadacao::new(b"896955555553555566667773777777777775777777777775").unwrap().convenio, Convenio::Outros(_)));
@@ -532,7 +546,7 @@ mod tests {
 
         for (barcode, expected) in barcodes.iter() {
             assert_eq!(
-                CodBarras::new(*barcode).unwrap().calculate_dv().unwrap(),
+                CodBarras::new(*barcode).unwrap().calculate_dv(),
                 *expected,
             );
         }

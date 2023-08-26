@@ -1,11 +1,12 @@
 [workspace]
 members = ["boleto-utils", "boleto-utils-cli"]
 default-members = ["boleto-utils", "boleto-utils-cli"]
+resolver = "2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace.dependencies]
-boleto-utils = { path = "boleto-utils/", version = "0.1.1"}
+boleto-utils = { path = "boleto-utils/", version = "0.1.2"}
 serde = { version = "1.0", features = ["derive"] }
 
 [workspace.package]
@@ -18,3 +19,8 @@ repository = "https://github.com/fernandosavio/boleto-utils/"
 license = "MIT"
 keywords = ["barcode", "boleto", "codigo-de-barras", "linha-digitavel"]
 categories = ["parser-implementations"]
+
+[profile.release]
+codegen-units = 1
+lto = true
+panic = "abort"
